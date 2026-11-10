@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The browser enforces this policy: no network requests, no outside scripts, fonts, or images. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-4+X8mLYLuO0Vqqg7qgs5PQabue61NFb96WRvdH3tDzU='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mU7NvS38au+74hSsPQf+wJ1gKvMukSqu+d7iqEirk60='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Case Timeline</title>
 <style id="pagestyle">@page{size:11in 8.5in;margin:0}</style>
@@ -122,6 +122,8 @@ body.nocase aside,body.nocase .hascase,body.nocase #warn{display:none}
 .menu-list{position:absolute;top:calc(100% + 4px);left:0;z-index:20;min-width:210px;background:#fff;border:1px solid var(--line);border-radius:5px;box-shadow:0 3px 12px rgba(0,0,0,.18);padding:4px}
 .menu.right .menu-list{left:auto;right:0}
 .menu-list button{display:block;width:100%;border:0;border-radius:3px;text-align:left;padding:7px 10px}
+.caselist{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto;margin:12px 0}
+.caselist button{text-align:left;font-weight:700}
 
 </style>
 </head>
@@ -611,12 +613,15 @@ const Store=(()=>{
   try{cases=(await scan(dir,'',0,[])).sort((a,b)=>stem(a.path).localeCompare(stem(b.path)));}catch(e){status('Could not read the cases folder.',true);}
   drawPicker();
  }
+ function caseLabels(){
+  const stems=cases.map(c=>stem(c.path).toLowerCase());
+  return cases.map((c,i)=>{const s=stems[i],copy=stems.some(o=>o!==s&&(s.startsWith(o+'-')||s.startsWith(o+' (')));return stem(c.path)+(copy?' (possible duplicate copy)':'');});
+ }
  function drawPicker(){
   const p=el('#casepick');p.innerHTML='';
   const add=(value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;p.append(o);};
-  if(!cases.length&&!hasCase)add('','No case open');
-  const stems=cases.map(c=>stem(c.path).toLowerCase());
-  cases.forEach((c,i)=>{const s=stems[i],copy=stems.some(o=>o!==s&&(s.startsWith(o+'-')||s.startsWith(o+' (')));add(String(i),stem(c.path)+(copy?' (possible duplicate copy)':''));});
+  if(!hasCase)add('',cases.length?'Choose a case...':'No case open');
+  caseLabels().forEach((label,i)=>add(String(i),label));
   if(hasCase&&!cases.some(c=>c.path===fileName||c.name===fileName)){add('open',stem(fileName)||state.meta.caseno);p.value='open';}
   else{const at=cases.findIndex(c=>c.name===fileName||c.path===fileName);if(at>=0)p.value=String(at);}
   p.disabled=p.options.length<2;
@@ -652,8 +657,9 @@ const Store=(()=>{
  }
  async function connect(handle){
   dir=handle;needsReconnect=null;banner('');await refreshCases();
-  if(!hasCase)renderChart();
-  if(!hasCase)status(cases.length?'Choose a case from the list.':'No cases in this folder yet. Start a new case.');
+  const found=cases.length===1?'1 case':cases.length+' cases';
+  if(hasCase)status(`Found ${found} in ${dir.name||'this folder'}. Switch cases with the list at the top.`);
+  else{status('');renderChart();}
  }
  async function chooseFolder(){
   if(!canUseFolders()){status('This browser cannot open folders. Open one case file instead.',true);return;}
@@ -756,7 +762,7 @@ const Store=(()=>{
   showApp();drawPicker();renderChart();
   window.addEventListener('focus',onFocus);
   window.addEventListener('beforeunload',e=>{if(dirty()){e.preventDefault();e.returnValue='';}});
-  el('#casepick').addEventListener('change',e=>{const c=cases[+e.target.value];if(c)openHandle(c);});
+  el('#casepick').addEventListener('change',e=>{if(e.target.value==='')return;const c=cases[+e.target.value];if(c)openHandle(c);});
   if(!canUseFolders())return;
   const h=await recall();
   if(!h)return;
@@ -765,7 +771,7 @@ const Store=(()=>{
    if(p==='granted')await connect(h);else{needsReconnect=h;renderChart();}
   }catch(e){}
  }
- return {init,noteChange,chooseFolder,reconnect,openOne,saveNow,caseExists,startNewCase,download,safeName,
+ return {openIndex:i=>{if(cases[i])openHandle(cases[i]);},caseLabels,get folderName(){return dir&&dir.name||'this folder';},init,noteChange,chooseFolder,reconnect,openOne,saveNow,caseExists,startNewCase,download,safeName,
   get hasCase(){return hasCase;},get canReconnect(){return !!needsReconnect;},get canUseFolders(){return canUseFolders();},get hasFolder(){return !!dir;},get notice(){return notice;},
   _debug:{dirty,snapshot}};
 })();
@@ -1086,7 +1092,11 @@ function markSwatch(k,x,y){
 }
 function renderChart(){
  if(!Store.hasCase){
-  $('#pages').innerHTML=`<div class="welcome"><h2>Case Timeline</h2><p class="hint">${Store.canReconnect?'Allow access to your cases folder again to pick up where you left off.':Store.hasFolder?'Choose a case from the list at the top, or start a new one.':'Choose the OneDrive folder that holds your cases, or open a single case file.'}</p><div class="presets">${Store.canReconnect?'<button class="primary" data-welcome="reconnect">Allow cases folder</button>':''}<button class="${Store.canReconnect||Store.hasFolder?'':'primary'}" data-welcome="new">+ New case</button>${Store.canUseFolders&&!Store.canReconnect&&!Store.hasFolder?'<button data-welcome="folder">Choose cases folder</button>':''}<button data-welcome="open">Open a case file</button></div></div>`;
+  const labels=Store.caseLabels(),folder=esc(Store.folderName);
+  const message=Store.canReconnect?'Allow access to your cases folder again to pick up where you left off.':!Store.hasFolder?'Choose the OneDrive folder that holds your cases, or open a single case file.':labels.length?`Choose a case from ${folder}.`:`No Excel case files were found in ${folder}. Only .xlsx files are listed. Start a new case here, or choose a different folder.`;
+  const list=labels.length?`<div class="caselist">${labels.map((l,i)=>`<button data-case="${i}">${esc(l)}</button>`).join('')}</div>`:'';
+  const folderBtn=Store.canUseFolders&&!Store.canReconnect?`<button data-welcome="folder">${Store.hasFolder?'Choose a different folder':'Choose cases folder'}</button>`:'';
+  $('#pages').innerHTML=`<div class="welcome"><h2>Case Timeline</h2><p class="hint">${message}</p>${list}<div class="presets">${Store.canReconnect?'<button class="primary" data-welcome="reconnect">Allow cases folder</button>':''}<button class="${Store.canReconnect||labels.length?'':'primary'}" data-welcome="new">+ New case</button>${folderBtn}<button data-welcome="open">Open a case file</button></div></div>`;
   return {pages:0,missing:0};
  }
  updateAutoSections();
@@ -1704,6 +1714,7 @@ $('#csvfile').addEventListener('change',async e=>{
  $('#savestatus').textContent=`Imported ${added} event${added===1?'':'s'}`+(skipped?`. ${skipped} row${skipped===1?'':'s'} could not be read and were skipped.`:'.');
 });
 document.addEventListener('click',e=>{
+ const pick=e.target.closest('[data-case]');if(pick){Store.openIndex(+pick.dataset.case);return;}
  const w=e.target.closest('[data-welcome]');if(!w)return;
  const a=w.dataset.welcome;
  if(a==='folder')Store.chooseFolder();else if(a==='reconnect')Store.reconnect();else if(a==='open')$('#openfile').click();else openCaseDialog('case');
