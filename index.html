@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The browser enforces this policy: no network requests, no outside scripts, fonts, or images. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ngySP4awTCcpT+8x4wUYOhyzwhm4M94YZnffNr2gzA0='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-U3Q+jm6oybWHJNcE9uyFxn72wWfZOpqwFQEu44yklCw='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Case Timeline</title>
 <style id="pagestyle">@page{size:11in 8.5in;margin:0}</style>
@@ -389,7 +389,7 @@ const XLSX=(()=>{
 /* ---------- turns a case into workbook sheets, and workbook sheets back into a case ---------- */
 const CaseFile=(()=>{
  const pad2=n=>String(n).padStart(2,'0');
- const EVENT_COLUMNS=['Date','Time','Approximate','End','Title','Icon','Location name','Address','Latitude','Longitude','Notes','ID','Label X','Label Y'];
+ const EVENT_COLUMNS=['Date','Time','Approximate','End','Title','Icon','Location name','Address','Latitude','Longitude','Notes','ID','Label X','Label Y','Own box'];
  const MARK_LABELS={dot:'Event time',exact:'Exact time',approx:'Approximate time',bar:'Duration',group:'Events close together',gap:'Time skipped'};
  const RULE_TIMES={'Burst: a neighbor within':'burst','Active: a neighbor within':'active','Before the Incident covers':'beforeLen','Incident with no end time':'incidentLen','Response covers':'responseLen','Investigation covers at least':'investigationLen','Longest short-section line: burst':'floors.0','Longest short-section line: active':'floors.1','Longest short-section line: quiet':'floors.2'};
  const RULE_NUMBERS={'Smallest burst or active group':'minGroup','Most sections':'maxSections','Most events on one line':'maxPerLine','Longest line, compared to its section (percent)':'spanPct'};
@@ -398,7 +398,7 @@ const CaseFile=(()=>{
   'Example row format: 3/10/2026 | 01:52 | (Approximate blank or Yes) | (End blank) | Rear window broken | Glass break',
   'Time uses a 24-hour clock. Pick Icon from the drop-down, which comes from the Legend sheet.',
   'Address and Latitude/Longitude are optional and are used only for map exports. If both are present, the coordinates are used.',
-  'Do not change the hidden ID, Label X, and Label Y columns. Leave them blank on new rows and the app fills them in.',
+  'Do not change the hidden ID, Label X, Label Y, and Own box columns. Leave them blank on new rows and the app fills them in.',
   'Sections print in the same order as the rows on the Sections sheet.',
   'Close this file in Excel before saving from the Case Timeline app.'
  ];
@@ -469,7 +469,7 @@ const CaseFile=(()=>{
   const lat=o['latitude'],lng=o['longitude'],num=v=>typeof v==='number'?v:text(v)===''?null:+text(v);
   const la=num(lat),ln=num(lng);
   const dx=num(o['label x']),dy=num(o['label y']);
-  return {id:text(o['id'])||nextId(),t:`${date}T${time}`,icon:iconFor(text(o['icon'])),title,approx:yes(o['approximate']),end:readStamp(o['end']),place:text(o['location name']),address:text(o['address']),coords:la!==null&&ln!==null&&!isNaN(la)&&!isNaN(ln)?`${la}, ${ln}`:'',notes:text(o['notes']),dx:dx===null||isNaN(dx)?null:dx,dy:dy===null||isNaN(dy)?null:dy};
+  return {id:text(o['id'])||nextId(),t:`${date}T${time}`,icon:iconFor(text(o['icon'])),title,approx:yes(o['approximate']),end:readStamp(o['end']),place:text(o['location name']),address:text(o['address']),coords:la!==null&&ln!==null&&!isNaN(la)&&!isNaN(ln)?`${la}, ${ln}`:'',notes:text(o['notes']),dx:dx===null||isNaN(dx)?null:dx,dy:dy===null||isNaN(dy)?null:dy,solo:yes(o['own box'])?'own':text(o['own box'])};
  }
 
  function toSheets(c){
@@ -478,7 +478,7 @@ const CaseFile=(()=>{
   const events=[...c.events].sort((a,b)=>new Date(a.t)-new Date(b.t)).map(e=>{
    const [d,t]=e.t.split('T'),p=e.coords?String(e.coords).split(',').map(x=>+x.trim()):[];
    const ok=p.length===2&&!p.some(isNaN);
-   return [{date:d},{time:t},e.approx?'Yes':null,e.end?{dt:e.end}:null,e.title,nameOf(e.icon),e.place||null,e.address||null,ok?p[lat]:null,ok?p[lng]:null,e.notes||null,e.id,e.dx??null,e.dy??null];
+   return [{date:d},{time:t},e.approx?'Yes':null,e.end?{dt:e.end}:null,e.title,nameOf(e.icon),e.place||null,e.address||null,ok?p[lat]:null,ok?p[lng]:null,e.notes||null,e.id,e.dx??null,e.dy??null,e.solo||null];
   });
   const kept=(c.unreadable||[]).map(o=>EVENT_COLUMNS.map(h=>o._raw[h.toLowerCase()]??null));
   const images=[],legendRows=c.legend.map(l=>{
@@ -493,7 +493,7 @@ const CaseFile=(()=>{
   for(const [label,path] of Object.entries(RULE_NUMBERS))settings.push(['Grouping rule: '+label,String(r[path])]);
   settings.push(['Grouping rule: Line lengths it may use',r.lines.join(', ')]);
   const sheets=[
-   {name:'Events',head:true,freeze:true,coords:[8,9],rows:[EVENT_COLUMNS,...events,...kept],columns:[12,8,13,17,44,18,18,44,11,11,30,8,8,8].map((width,i)=>({width,hidden:i>=11})),validations:[{range:'F2:F2000',formula:'Legend!$A$2:$A$200'},{range:'C2:C2000',formula:'"Yes"'}]},
+   {name:'Events',head:true,freeze:true,coords:[8,9],rows:[EVENT_COLUMNS,...events,...kept],columns:[12,8,13,17,44,18,18,44,11,11,30,8,8,8,8].map((width,i)=>({width,hidden:i>=11})),validations:[{range:'F2:F2000',formula:'Legend!$A$2:$A$200'},{range:'C2:C2000',formula:'"Yes"'}]},
    {name:'Legend',head:true,freeze:true,rows:[['Display name','Built-in icon','Custom image'],...legendRows],columns:[{width:24},{width:16},{width:16}]},
    {name:'Sections',head:true,freeze:true,rows:[['Section heading','From','To','Line length','Unit','Include','Automatic dates','Automatic line length','Standard section'],...c.sections.map(s=>[s.name||null,s.start?{dt:s.start}:null,s.end?{dt:s.end}:null,+s.n||1,s.unit,yesNo(s.include!==false),s.role?yesNo(s.autoDates):null,s.role?yesNo(s.autoLine):null,s.role||null])],columns:[26,17,17,11,10,9,11,11,15].map(width=>({width})),validations:[{range:'E2:E200',formula:'"minute,hour,day,week,month,year"'}]},
    {name:'Settings',head:true,freeze:true,rows:settings,columns:[{width:44},{width:60}]},
@@ -965,11 +965,15 @@ function wrapRow(time,title,maxW){
  const width=Math.max(tw+mw(lines[0]),...lines.slice(1).map(l=>mw(l)));
  return {lines:lines.slice(0,3),width,tw};
 }
+/* Which events share a box on the chart right now, so the editor can offer to split them. */
+let stackMates=new Map();
 function layoutLine(row,x0,x1,maxH){
  const span=row.end-row.start,scale=t=>x0+(t-row.start)/span*(x1-x0),longLine=span>864e5*1.01;
  const entries=row.items.map(e=>({e,x:scale(+new Date(e.t))})).sort((a,b)=>a.x-b.x);
  const clusters=[];
- for(const en of entries){const last=clusters[clusters.length-1];if(last&&en.x-last.x<9)last.members.push(en);else clusters.push({x:en.x,members:[en]});}
+ /* Events marked as their own box never share one, so each can be dragged on its own. */
+ for(const en of entries){const last=clusters.filter(c=>!c.solo).pop();if(!en.e.solo&&last&&en.x-last.x<9)last.members.push(en);else clusters.push({x:en.x,members:[en],solo:!!en.e.solo});}
+ clusters.forEach(c=>{if(c.members.length>1)c.members.forEach(m=>stackMates.set(m.e.id,c.members.map(o=>o.e)));});
  const cards=clusters.map(c=>{
   const rowsIn=c.members.map(({e})=>{const d=new Date(e.t),time=(e.approx?'~':'')+(longLine?(d.getMonth()+1)+'/'+d.getDate()+' ':'')+hm(d),w=wrapRow(time,e.title,158);return {e,time,...w,h:Math.max(24,w.lines.length*12.5+7)};});
   const w=Math.max(...rowsIn.map(r=>r.width))+36,h=rowsIn.reduce((s,r)=>s+r.h,0);
@@ -1097,6 +1101,7 @@ function markSwatch(k,x,y){
  return `<g transform="translate(${x} ${y})">${body}</g>`;
 }
 function renderChart(){
+ stackMates=new Map();
  if(!Store.hasCase){
   const labels=Store.caseLabels(),folder=esc(Store.folderName);
   const message=Store.canReconnect?'Allow access to your cases folder again to pick up where you left off.':!Store.hasFolder?'Choose the OneDrive folder that holds your cases, or open a single case file.':labels.length?`Choose a case from ${folder}.`:`No Excel case files were found in ${folder}. Only .xlsx files are listed. Start a new case here, or choose a different folder.`;
@@ -1216,7 +1221,7 @@ function renderList(){
 }
 function renderEditor(){
  const e=state.events.find(x=>x.id===selected),box=$('#editor');
- if(!e){box.innerHTML='<p class="hint">Click an event on the chart to edit it. Drag its box to move the label. The time stays put, and nearby lines make room.</p>';return;}
+ if(!e){box.innerHTML='<p class="hint">Click an event on the chart to edit it. Drag its box to move the label. The time stays put, and nearby lines make room. If two events share one box, click either one and choose Split into separate boxes to move them apart.</p>';return;}
  box.innerHTML=`<div class="card">
   <label class="f">What happened<textarea id="e-title" rows="2">${esc(e.title)}</textarea></label>
   <div class="row"><label class="f">Date and time<input id="e-t" type="datetime-local" value="${e.t}"></label></div>
@@ -1228,12 +1233,16 @@ function renderEditor(){
   <label class="f">Address (optional)<input id="e-address" placeholder="Street, city, state" value="${esc(e.address||'')}"></label>
   <label class="f">Latitude, longitude (optional, used instead of the address)<input id="e-coords" placeholder="43.8000, -87.1000" value="${esc(e.coords||'')}"><span class="coordmsg" id="e-coordmsg"></span></label>
   <label class="f">Notes (not printed on the chart)<textarea id="e-notes" rows="2">${esc(e.notes)}</textarea></label>
+  ${stackMates.has(e.id)?`<p class="hint">This event shares a box with ${stackMates.get(e.id).length-1===1?'1 other event':stackMates.get(e.id).length-1+' other events'} because the times are close together.</p><div class="row"><button id="e-split" class="small">Split into separate boxes</button></div>`:''}
+  ${e.solo?'<div class="row"><button id="e-join" class="small">Put back in one box with nearby events</button></div>':''}
   <div class="row"><button id="e-reset" class="small">Reset label position</button><button id="e-del" class="small">Delete event</button></div>
  </div>`;
  const coordMsg=()=>{const v=(e.coords||'').trim(),ok=parseCoords(v),m=$('#e-coordmsg');m.textContent=!v?'':ok?'Reads as '+ok.lat.toFixed(5)+', '+ok.lng.toFixed(5):'Could not read this. Paste it as latitude, longitude.';m.style.color=v&&!ok?'#a32020':'';};
  const bind=(id,prop,get)=>{$(id).addEventListener('input',ev=>{e[prop]=get?get(ev.target):ev.target.value;renderChart();renderList();renderMap();coordMsg();});};
  bind('#e-title','title');bind('#e-t','t');bind('#e-end','end');bind('#e-notes','notes');bind('#e-approx','approx',t=>t.checked);bind('#e-place','place');bind('#e-address','address');bind('#e-coords','coords');coordMsg();
  $('#e-reset').onclick=()=>{e.dx=e.dy=null;renderChart();};
+ if($('#e-split'))$('#e-split').onclick=()=>{const mates=stackMates.get(e.id)||[];for(const m of mates)m.solo=mates[0].id;refresh();};
+ if($('#e-join'))$('#e-join').onclick=()=>{const g=e.solo;for(const m of state.events)if(m.solo===g){m.solo='';m.dx=m.dy=null;}refresh();};
  $('#e-del').onclick=()=>{state.events=state.events.filter(x=>x!==e);selected=null;refresh();};
 }
 function select(id){selected=id;showTab('events');refresh();}
@@ -1648,7 +1657,7 @@ $('#markrows').addEventListener('input',e=>{const t=e.target;if(t.dataset.mark==
 $('#hideEmpty').addEventListener('change',e=>{state.hideEmpty=e.target.checked;renderChart();});
 $('#sectionPages').addEventListener('change',e=>{state.sectionPages=e.target.checked;renderChart();});
 $('#addsec').onclick=()=>{handEdited();const last=state.sections[state.sections.length-1];const st=last?last.end:'2026-03-01T00:00';state.sections.push({name:'',start:st,end:local(addUnit(new Date(st),7,'day')),n:1,unit:'day',open:true});refresh();$('#sections').lastElementChild.scrollIntoView({block:'nearest'});};
-$('#add').onclick=()=>{const prev=state.events.find(x=>x.id===selected)||sorted().slice(-1)[0];const inc=state.sections.find(x=>x.role==='incident');const d=new Date(prev?new Date(prev.t).getTime()+6e4*5:inc?inc.start:Date.now());const e={id:'e'+(uid++),t:local(d),icon:state.legend[0].id,title:'New event',approx:false,end:'',notes:'',dx:null,dy:null};state.events.push(e);select(e.id);const f=$('#e-title');f.focus();f.select();};
+$('#add').onclick=()=>{const prev=state.events.find(x=>x.id===selected)||sorted().slice(-1)[0];const inc=state.sections.find(x=>x.role==='incident');const d=new Date(prev?new Date(prev.t).getTime()+6e4*5:inc?inc.start:Date.now());const e={id:'e'+(uid++),t:local(d),icon:state.legend[0].id,title:'New event',approx:false,end:'',notes:'',dx:null,dy:null,solo:''};state.events.push(e);select(e.id);const f=$('#e-title');f.focus();f.select();};
 $('#print').onclick=()=>{selected=null;refresh();window.print();};
 $('#upload').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.legend.push({id:'u'+(uid++),img:r.result,name:f.name.replace(/\.[^.]+$/,'')});refresh();};r.readAsDataURL(f);e.target.value='';});
 [['title','#f-title'],['subtitle','#f-subtitle'],['caseno','#f-caseno'],['by','#f-by'],['footer','#f-footer'],['paper','#f-paper']].forEach(([k,id])=>{const el=$(id);el.value=state.meta[k];el.addEventListener('input',()=>{state.meta[k]=el.value;renderChart();});});
