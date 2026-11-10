@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Laptop Check</title>
+<style>
+:root{--ink:#1c1f23;--muted:#5d6670;--line:#d6dae0;--accent:#1d5fd1;--good:#17613a;--bad:#a32020}
+*{box-sizing:border-box}
+body{font:15px/1.45 Arial,Helvetica,sans-serif;color:var(--ink);background:#fff;margin:0 auto;max-width:760px;padding:24px 16px}
+h1{font-size:24px;margin:0 0 6px}h2{font-size:16px;margin:26px 0 6px}
+p{margin:0 0 10px}.muted{color:var(--muted);font-size:13.5px}
+button,select{font:inherit;padding:7px 12px;border:1px solid #b9c0c9;border-radius:4px;background:#fff;color:inherit;cursor:pointer}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+table{border-collapse:collapse;width:100%;margin:6px 0 10px}
+td{border-bottom:1px solid var(--line);padding:6px 8px 6px 0;vertical-align:top;font-size:14px}
+td.s{width:82px;font-weight:700}.pass{color:var(--good)}.fail{color:var(--bad)}.wait{color:var(--muted)}
+textarea{width:100%;height:190px;font:12.5px/1.4 Menlo,Consolas,monospace;padding:8px;border:1px solid #b9c0c9;border-radius:4px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 8px}
+.pg{display:none}
+@page{size:11in 8.5in;margin:.5in}
+@media print{.ui{display:none}.pg{display:block;font-size:20px;break-after:page}.pg:last-child{break-after:auto}.pg a{color:#1d5fd1}}
+</style>
+</head>
+<body>
+<div class="ui">
+<h1>Work laptop check</h1>
+<p>This page tests whether Case Timeline can work on this computer. It never connects to the internet.</p>
+<p id="savecopy" hidden><b>Please run this twice.</b> Finish the steps below on this web page and copy the report. Then <a href="index.html" download="laptop-check.html">save a copy of this page</a>, open the saved file in Edge, and run it again. Send both reports.</p>
+<p class="muted">Step 2 creates one small test file in the folder you choose, then deletes it. The report below never includes file names or their contents.</p>
+
+<h2>1. Automatic checks</h2>
+<table id="auto"></table>
+
+<h2>2. Folder access</h2>
+<p>Choose the OneDrive folder where cases will live. Use an empty or test folder if you have one.</p>
+<div class="row"><button class="primary" id="pick">Choose folder and test</button><button id="again" hidden>Allow the remembered folder again</button></div>
+<table id="folder"></table>
+
+<h2>3. If folder access is blocked</h2>
+<div class="row"><label><input type="file" id="single"> </label><button id="dl">Test a download</button></div>
+<table id="fallback"></table>
+
+<h2>4. PDF links</h2>
+<p>Press Print, choose <b>Save as PDF</b>, then open the PDF and click the link on page 1. It should jump to page 2.</p>
+<div class="row"><button id="print">Print test pages</button><label>Did the PDF link work? <select id="pdf"><option value="">Not tested</option><option>Yes</option><option>No</option></select></label></div>
+
+<h2>5. Report</h2>
+<p>Copy this and send it to whoever is setting up the app.</p>
+<textarea id="report" readonly aria-label="Report"></textarea>
+<div class="row" style="margin-top:8px"><button id="copy">Copy report</button><span class="muted" id="copied" role="status"></span></div>
+</div>
+
+<section class="pg" id="lc-p1"><h1>Page 1</h1><p><a href="#lc-p2">Click here to go to page 2</a></p></section>
+<section class="pg" id="lc-p2"><h1>Page 2</h1><p><a href="#lc-p1">Click here to go back to page 1</a></p></section>
+
+<script>
+'use strict';
+const $=s=>document.querySelector(s),R={};
+const LABELS={
+ browser:'Browser',location:'Opened from',secure:'Secure page status',picker:'Folder access available',zip:'Excel file reading and writing',network:'Network blocked by this page',
+ remembered:'Remembers the folder after reopening',grant:'Folder chosen',list:'Lists files in the folder',read:'Opens an existing workbook',write:'Creates a file',readback:'Reads the file back',remove:'Removes the file',
+ single:'Opens one chosen file',download:'Starts a download'
+};
+const GROUPS={auto:['browser','location','secure','picker','zip','network'],folder:['remembered','grant','list','read','write','readback','remove'],fallback:['single','download']};
+function put(key,ok,text){R[key]={ok,text};draw();}
+function draw(){
+ for(const [id,keys] of Object.entries(GROUPS)){
+  $('#'+id).innerHTML='';
+  for(const k of keys){
+   const tr=document.createElement('tr'),r=R[k],a=document.createElement('td'),b=document.createElement('td'),c=document.createElement('td');
+   const word=!r?'Not run':r.ok===true?'Pass':r.ok===false?'Fail':'Info';
+   a.className='s '+(!r||r.ok===null?'wait':r.ok?'pass':'fail');a.textContent=word;b.textContent=LABELS[k];c.textContent=r?r.text:'';c.className='muted';
+   tr.append(a,b,c);$('#'+id).append(tr);
+  }
+ }
+ const lines=[];
+ for(const keys of Object.values(GROUPS))for(const k of keys){const r=R[k];lines.push((r?(r.ok===true?'PASS':r.ok===false?'FAIL':'INFO'):'----')+'  '+LABELS[k]+(r&&r.text?': '+r.text:''));}
+ lines.push('----  PDF link worked: '+($('#pdf').value||'Not tested'));
+ $('#report').value=lines.join('\n');
+}
+const errText=e=>e&&e.name?e.name:'Error';
+/* A small remembered handle, used only to test whether permission can be restored after reopening. */
+function db(){return new Promise((ok,no)=>{const q=indexedDB.open('laptop-check',1);q.onupgradeneeded=()=>q.result.createObjectStore('h');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error);});}
+async function saveHandle(h){const d=await db();await new Promise((ok,no)=>{const t=d.transaction('h','readwrite');t.objectStore('h').put(h,'dir');t.oncomplete=ok;t.onerror=()=>no(t.error);});}
+async function loadHandle(){const d=await db();return new Promise((ok,no)=>{const q=d.transaction('h').objectStore('h').get('dir');q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error);});}
+async function auto(){
+ const ua=navigator.userAgent,m=ua.match(/Edg\/([\d.]+)/)||ua.match(/Chrome\/([\d.]+)/)||ua.match(/Version\/([\d.]+).*Safari/);
+ put('browser',null,(/Edg\//.test(ua)?'Edge ':/Chrome\//.test(ua)?'Chrome ':/Safari\//.test(ua)?'Safari ':'Other ')+(m?m[1]:''));
+ put('location',null,location.protocol==='file:'?'A file on this computer':'A web address');
+ put('secure',window.isSecureContext,window.isSecureContext?'Secure':'Not secure');
+ put('picker','showDirectoryPicker' in window,'showDirectoryPicker' in window?'Available':'Not available in this browser or blocked');
+ let zip=false;try{new DecompressionStream('deflate-raw');new CompressionStream('deflate-raw');zip=true;}catch(e){}
+ put('zip',zip,zip?'Built-in support':'Not supported');
+ try{await fetch('https://example.com/',{mode:'no-cors',cache:'no-store'});put('network',false,'A request was allowed');}catch(e){put('network',true,'The request was refused');}
+ try{
+  const h=await loadHandle();
+  if(h){const p=await h.queryPermission({mode:'readwrite'});put('remembered',p==='denied'?false:true,p==='granted'?'Still allowed':'Folder remembered, needs one click to allow');$('#again').hidden=p==='granted'?true:false;}
+  else put('remembered',null,'Run step 2, then close and reopen this page');
+ }catch(e){put('remembered',false,errText(e));}
+}
+async function testFolder(dir){
+ put('grant',true,'Allowed');
+ let files=0,books=0,folders=0,first=null;
+ try{
+  for await(const [name,h] of dir.entries()){
+   if(h.kind==='directory'){folders++;continue;}
+   files++;if(/\.xlsx$/i.test(name)&&!name.startsWith('~$')){books++;first=first||h;}
+  }
+  put('list',true,`${files} files, ${books} workbooks, ${folders} subfolders`);
+ }catch(e){put('list',false,errText(e));}
+ if(first){
+  try{const t=performance.now(),f=await first.getFile(),b=new Uint8Array(await f.slice(0,4).arrayBuffer()),good=b[0]===0x50&&b[1]===0x4b;put('read',good,`${Math.round(performance.now()-t)} ms${good?'':', unexpected contents'}`);}
+  catch(e){put('read',false,errText(e));}
+ }else put('read',null,'No workbook in this folder to try');
+ const NAME='_timeline-check-delete-me.txt',TEXT='Case Timeline check file. Safe to delete.';
+ let fh=null;
+ try{fh=await dir.getFileHandle(NAME,{create:true});const w=await fh.createWritable();await w.write(TEXT);await w.close();put('write',true,'Created');}
+ catch(e){put('write',false,errText(e));return;}
+ try{const t=await (await fh.getFile()).text();put('readback',t===TEXT,t===TEXT?'Matches':'Different contents');}
+ catch(e){put('readback',false,errText(e));}
+ try{await dir.removeEntry(NAME);put('remove',true,'Removed');}
+ catch(e){put('remove',false,errText(e));}
+}
+$('#pick').onclick=async()=>{
+ if(!('showDirectoryPicker' in window)){put('grant',false,'Not available, use step 3');return;}
+ try{const dir=await window.showDirectoryPicker({mode:'readwrite'});try{await saveHandle(dir);}catch(e){put('remembered',false,errText(e));}await testFolder(dir);if(!R.remembered||R.remembered.ok===null)put('remembered',null,'Now close and reopen this page');}
+ catch(e){put('grant',false,e&&e.name==='AbortError'?'Cancelled':errText(e));}
+};
+$('#again').onclick=async()=>{
+ try{const h=await loadHandle(),p=await h.requestPermission({mode:'readwrite'});put('remembered',p==='granted',p==='granted'?'Allowed again with one click':'Not allowed');if(p==='granted'){$('#again').hidden=true;await testFolder(h);}}
+ catch(e){put('remembered',false,errText(e));}
+};
+$('#single').addEventListener('change',async e=>{
+ const f=e.target.files[0];if(!f)return;
+ try{await f.slice(0,4).arrayBuffer();put('single',true,'Opened');}catch(err){put('single',false,errText(err));}
+ e.target.value='';
+});
+$('#dl').onclick=()=>{
+ try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['Case Timeline check file. Safe to delete.'],{type:'text/plain'}));a.download='timeline-check-delete-me.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);put('download',null,'Started. Check your Downloads folder');}
+ catch(e){put('download',false,errText(e));}
+};
+$('#print').onclick=()=>window.print();
+$('#pdf').addEventListener('change',draw);
+$('#copy').onclick=async()=>{const t=$('#report');let ok=false;try{await navigator.clipboard.writeText(t.value);ok=true;}catch(e){t.select();ok=document.execCommand('copy');}$('#copied').textContent=ok?'Copied.':'Select the text and copy it.';};
+if(location.protocol!=='file:')$('#savecopy').hidden=false;
+draw();auto();
+</script>
+</body>
+</html>
