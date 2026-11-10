@@ -139,6 +139,7 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
       </details>
       <div class="presets"><button class="small" data-preset="zoom">Sample: zoom in on the incident</button><button class="small" data-preset="day">Per day</button><button class="small" data-preset="week">Per week</button><button class="small" data-preset="month">Per month</button></div>
       <label class="check"><input type="checkbox" id="hideEmpty" checked> Shrink stretches with no events</label>
+      <label class="check"><input type="checkbox" id="sectionPages"> Start each section on a new page</label>
       <div class="presets"><button class="small" data-allsec="close">Close all</button><button class="small" data-allsec="open">Open all</button></div>
       <p class="note" id="secnote" hidden>These sections are not in date order. Each printed section header shows its dates.</p>
       <div id="sections"></div>
@@ -309,6 +310,7 @@ const state={
  suggest:copyDefaults(),
  meta:{title:'Timeline of Events',subtitle:'Commercial burglary, 400 block of Example St.',caseno:'SAMPLE-0000',by:'Det. (name)',footer:'Sample only. All people and events are fictional.',paper:'letter'},
  hideEmpty:true,
+ sectionPages:false,
  legendMode:'auto',legendLimit:3,
  markNames:{dot:'Event time',exact:'Exact time',approx:'~ Approximate time',bar:'Duration',group:'Events close together',gap:'Time skipped'},
  legend:['person','vehicle','phone','lock','camera','glass','alarm','dispatch','officer','evidence','interview','document','money','arrest'].map(k=>({id:k,icon:k,name:LIBRARY_NAMES[k]})),
@@ -391,7 +393,7 @@ function buildRows(){
  const secs=state.sections.filter(s=>s.include!==false&&validSection(s));
  secs.forEach((s,i)=>{
   const st=new Date(s.start),en=new Date(s.end),range=rangeText(st,en),res=resText(s);
-  if(i){const pe=new Date(secs[i-1].end);if(st>pe)rows.push({type:'gap',start:pe,end:st,kind:'skip'});}
+  if(i){const pe=new Date(secs[i-1].end);if(st-pe>6e4)rows.push({type:'gap',start:pe,end:st,kind:'skip'});}
   const head={type:'section',label:s.name||range,named:!!s.name,range,res,count:0,sub:(s.name?range+'   |   ':'')+'Each line = '+res};
   rows.push(head);heads.push(head);
   let t=new Date(s.start),guard=0,empty=null;const n=Math.max(1,+s.n||1);
@@ -488,9 +490,10 @@ function rowLabel(r){
 }
 function gapText(r){
  const ms=r.end-r.start,d=Math.round(ms/864e5),h=Math.round(ms/36e5);
- const len=d>=2?d+' days':h>=1?h+(h===1?' hour':' hours'):Math.round(ms/6e4)+' min';
+ const days=ms/864e5,len=days>=.99?Math.round(days)+(Math.round(days)===1?' day':' days'):h>=1?h+(h===1?' hour':' hours'):Math.round(ms/6e4)+' min';
+ const atMidnight=x=>x.getHours()===0&&x.getMinutes()===0;
  const sameDay=r.start.toDateString()===new Date(r.end-1).toDateString();
- const range=d>=2?md(r.start)+' to '+md(r.end):sameDay?md(r.start)+', '+hm(r.start)+' to '+hm(r.end):md(r.start)+' '+hm(r.start)+' to '+md(r.end)+' '+hm(r.end);
+ const range=atMidnight(r.start)&&atMidnight(r.end)?(sameDay?md(r.start):md(r.start)+' to '+md(new Date(r.end-1))):d>=2?md(r.start)+' to '+md(r.end):sameDay?md(r.start)+', '+hm(r.start)+' to '+hm(r.end):md(r.start)+' '+hm(r.start)+' to '+md(r.end)+' '+hm(r.end);
  return (r.kind==='empty'?'No events':'Not shown')+', '+len+' ('+range+')';
 }
 
@@ -563,7 +566,7 @@ function renderChart(){
  const lines=built.rows.filter(r=>r.type==='line'),shownEv=lines.flatMap(r=>r.items);
  const flags={dot:shownEv.length>0,exact:shownEv.some(e=>!e.approx),approx:shownEv.some(e=>e.approx),bar:lines.some(r=>r.bars.length>0),group:lines.some(r=>r.lay.cards.some(c=>c.rows.length>1)),gap:built.rows.some(r=>r.type==='gap')};
  const items=[...state.legend.filter(l=>used.includes(l.id)),...Object.keys(state.markNames).filter(k=>flags[k]).map(k=>({mark:k,name:state.markNames[k]}))];
- const leg=legendLayout(items,L,R),bottom=H-34-30-leg.h,maxH=bottom-TOP-34;
+ const leg=legendLayout(items,L,R),bottom=H-34-30-leg.h,maxH=bottom-TOP-100;
  layoutAll(maxH);
  const tocH=built.heads.length?20+built.heads.length*16+14:0,pages=[[]];
  /* A shorter legend leaves more room for lines, so each page is sized from the legend it will actually show. */
@@ -582,10 +585,24 @@ function renderChart(){
   return [...state.legend.filter(l=>ic.has(l.id)),...Object.keys(state.markNames).filter(k=>f.has(k)).map(k=>({mark:k,name:state.markNames[k]}))];
  };
  const bottomFor=list=>H-34-30-legendLayout(itemsFor(list),L,R).h;
+ /* Headers and gaps always stay with a real line, so neither can be stranded at the edge of a page. */
+ const blockAt=i=>{
+  const rows=built.rows,out=[rows[i]];
+  if(state.sectionPages&&rows[i].kind==='skip')return out;
+  let j=i;
+  while(rows[j].type!=='line'&&rows[j+1]){
+   if(rows[j].kind==='empty'&&rows[j+1].head!==rows[j].head)break;
+   out.push(rows[++j]);
+  }
+  const after=rows[j+1];
+  if(rows[j].type==='line'&&after&&after.kind==='empty'&&!(rows[j+2]&&rows[j+2].head===after.head))out.push(after);
+  return out;
+ };
  let y=TOP+tocH;
  built.rows.forEach((r,i)=>{
-  const next=built.rows[i+1],added=r.type==='section'&&next?[r,next]:[r],need=added.reduce((a,x)=>a+x.h,0),current=pages[pages.length-1];
-  if(y+need>bottomFor([...current,...added])&&y>TOP){
+  const added=blockAt(i),need=added.reduce((a,x)=>a+x.h,0),current=pages[pages.length-1];
+  const forced=state.sectionPages&&r.type==='section'&&r!==built.heads[0]&&current.some(x=>x.kind!=='skip');
+  if((forced||y+need>bottomFor([...current,...added]))&&y>TOP){
    pages.push([]);y=TOP;
    if(r.type!=='section'&&r.head){const c={type:'section',label:r.head.label+' (continued)',sub:r.head.sub,h:34,top:y,head:r.head};pages[pages.length-1].push(c);y+=34;}
   }
@@ -1067,6 +1084,7 @@ $('#legendmode').addEventListener('change',e=>{state.legendMode=e.target.value;$
 $('#legendlimit').addEventListener('input',e=>{state.legendLimit=e.target.value;renderChart();});
 $('#markrows').addEventListener('input',e=>{const t=e.target;if(t.dataset.mark===undefined)return;state.markNames[t.dataset.mark]=t.value;renderChart();});
 $('#hideEmpty').addEventListener('change',e=>{state.hideEmpty=e.target.checked;renderChart();});
+$('#sectionPages').addEventListener('change',e=>{state.sectionPages=e.target.checked;renderChart();});
 $('#addsec').onclick=()=>{handEdited();const last=state.sections[state.sections.length-1];const st=last?last.end:'2026-03-01T00:00';state.sections.push({name:'',start:st,end:local(addUnit(new Date(st),7,'day')),n:1,unit:'day',open:true});refresh();$('#sections').lastElementChild.scrollIntoView({block:'nearest'});};
 $('#add').onclick=()=>{const prev=state.events.find(x=>x.id===selected)||sorted().slice(-1)[0];const inc=state.sections.find(x=>x.role==='incident');const d=new Date(prev?new Date(prev.t).getTime()+6e4*5:inc?inc.start:Date.now());const e={id:'e'+(uid++),t:local(d),icon:state.legend[0].id,title:'New event',approx:false,end:'',notes:'',dx:null,dy:null};state.events.push(e);select(e.id);const f=$('#e-title');f.focus();f.select();};
 $('#print').onclick=()=>{selected=null;refresh();window.print();};
