@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The browser enforces this policy: no network requests, no outside scripts, fonts, or images. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-mU7NvS38au+74hSsPQf+wJ1gKvMukSqu+d7iqEirk60='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ngySP4awTCcpT+8x4wUYOhyzwhm4M94YZnffNr2gzA0='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Case Timeline</title>
 <style id="pagestyle">@page{size:11in 8.5in;margin:0}</style>
@@ -124,6 +124,12 @@ body.nocase aside,body.nocase .hascase,body.nocase #warn{display:none}
 .menu-list button{display:block;width:100%;border:0;border-radius:3px;text-align:left;padding:7px 10px}
 .caselist{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto;margin:12px 0}
 .caselist button{text-align:left;font-weight:700}
+.editspot,.hot.toplink{cursor:text}
+.inline-edit{position:absolute;z-index:5;padding:0 3px;border:1px solid var(--accent);border-radius:2px;background:#fff;color:#111;font-family:Arial,Helvetica,sans-serif;outline:2px solid var(--accent-soft)}
+.tocback{position:absolute;top:1.2%;left:3.8%;font-size:12px;color:var(--accent);text-decoration:none}
+.tocback:hover{text-decoration:underline}
+@media print{.editspot,.tocback,.inline-edit{display:none!important}}
+.sectionspot:hover{background:rgba(255,255,255,.2)}
 
 </style>
 </head>
@@ -932,7 +938,7 @@ function buildRows(){
  secs.forEach((s,i)=>{
   const st=new Date(s.start),en=new Date(s.end),range=rangeText(st,en),res=resText(s);
   if(i){const pe=new Date(secs[i-1].end);if(st-pe>6e4)rows.push({type:'gap',start:pe,end:st,kind:'skip'});}
-  const head={type:'section',label:s.name||range,named:!!s.name,range,res,count:0,sub:(s.name?range+'   |   ':'')+'Each line = '+res};
+  const head={type:'section',sec:s,label:s.name||range,named:!!s.name,range,res,count:0,sub:(s.name?range+'   |   ':'')+'Each line = '+res};
   rows.push(head);heads.push(head);
   let t=new Date(s.start),guard=0,empty=null;const n=Math.max(1,+s.n||1);
   const flush=()=>{if(empty){rows.push({type:'gap',start:empty.a,end:empty.b,kind:'empty',head});empty=null;}};
@@ -1184,7 +1190,10 @@ function renderChart(){
   if(pi===0)s+=toc;
   rows.forEach(r=>{s+=drawRow(r,r.top,L,R);});
   s+=legendBlockFor(rows)+`<text x="${L}" y="${H-26}" font-size="9.5" fill="#444">${esc(m.footer)}</text><text x="${R}" y="${H-26}" text-anchor="end" font-size="9.5" fill="#444">Page ${pi+1} of ${pages.length}</text></svg>`;
-  s+=`<a class="hot toplink" data-page="${pi+1}" href="#page-1" title="Back to contents" aria-label="Back to contents on page 1" style="${box(L,36,titleW,32)}"></a>`;
+  s+=`<a class="hot toplink" data-edit="title" data-size="22" data-bold="1" data-page="${pi+1}" href="#page-1" title="Click to edit. On every page." aria-label="Back to contents on page 1" style="${box(L,36,Math.max(titleW,220),32)}"></a>`;
+  s+=[['subtitle',L,66,span*.6,16,12.5,'','left','Subtitle'],['caseno',R-240,38,240,16,12,'1','right','Case number'],['by',R-240,54,240,14,10.5,'','right','Prepared by'],['footer',L,H-38,span*.75,16,9.5,'','left','Footer']].map(([k,x,yy,w,h,size,bold,align,label])=>`<span class="hot editspot" role="button" tabindex="0" data-edit="${k}" data-size="${size}" data-bold="${bold}" data-align="${align}" data-label="${label}" title="Click to edit ${label.toLowerCase()}. On every page." aria-label="Edit ${label.toLowerCase()}" style="${box(x,yy,w,h)}"></span>`).join('');
+  rows.filter(r=>r.type==='section').forEach(r=>{s+=`<span class="hot editspot sectionspot" role="button" tabindex="0" data-edit="section" data-section="${state.sections.indexOf((r.head||r).sec)}" data-size="12.5" data-bold="1" data-align="left" data-label="Section heading" title="Click to edit this section's name." aria-label="Edit section heading" style="${box(L+4,r.top+6,Math.max(120,span-mw(r.sub,false,10)-40),22)}"></span>`;});
+  if(pi>0)s+='<a class="tocback" href="#page-1">&#8593; Contents</a>';
   if(pi===0)s+=tocLinks;
   return s+'</div>';
  }).join('');
@@ -1651,6 +1660,28 @@ $('#png').onclick=()=>{
  img.onload=()=>{const c=document.createElement('canvas');c.width=vb.width*scale;c.height=vb.height*scale;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=Store.safeName(state.meta.caseno||'timeline')+'-page1.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);},'image/png');};
  img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
 };
+/* Edit the title block and footer right on the page. They repeat on every page, so one edit changes them all. */
+function startInlineEdit(spot){
+ const paper=spot.closest('.paper'),key=spot.dataset.edit,scale=paper.clientWidth/paper.querySelector('svg').viewBox.baseVal.width;
+ const section=spot.dataset.section!==undefined?state.sections[+spot.dataset.section]:null,current=section?section.name:state.meta[key];
+ const box=document.createElement('input'),right=spot.dataset.align==='right',width=Math.max(spot.offsetWidth,paper.clientWidth*(right?.3:.5));
+ box.className='inline-edit';box.value=current;box.placeholder=spot.dataset.label||'Title';box.setAttribute('aria-label','Edit '+(spot.dataset.label||'title').toLowerCase());
+ box.style.cssText=`left:${right?spot.offsetLeft+spot.offsetWidth-width:spot.offsetLeft}px;top:${spot.offsetTop}px;width:${width}px;height:${spot.offsetHeight+2}px;font-size:${(+spot.dataset.size)*scale}px;font-weight:${spot.dataset.bold?700:400};text-align:${right?'right':'left'}`;
+ let done=false;
+ const finish=keep=>{
+  if(done)return;
+  done=true;
+  const value=box.value;
+  box.remove();
+  if(!keep||value===current)return;
+  if(section){handEdited();section.name=value;renderChart();syncSectionFields();}
+  else{state.meta[key]=value;$('#f-'+key).value=value;renderChart();}
+ };
+ box.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();finish(true);}else if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish(false);}});
+ box.addEventListener('blur',()=>finish(true));
+ paper.append(box);box.focus();box.select();
+}
+$('#pages').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('.editspot')){e.preventDefault();startInlineEdit(e.target);}});
 /* click and drag on the chart */
 let drag=null,dragFrame=0,pinCounter=0;
 function applyDrag(d){
@@ -1679,8 +1710,8 @@ window.addEventListener('pointerup',e=>{
 });
 window.addEventListener('pointercancel',()=>{drag=null;});
 $('#pages').addEventListener('click',e=>{
- const top=e.target.closest('.toplink');
- if(top&&top.dataset.page==='1'){e.preventDefault();showTab('page');return;}
+ const spot=e.target.closest('[data-edit]');
+ if(spot){e.preventDefault();startInlineEdit(spot);return;}
  const a=e.target.closest('[data-act]');if(a&&!e.target.closest('[data-card]'))showTab(a.dataset.act);});
 /* ---------- connecting the screen to case files ---------- */
 const STARTER_LEGEND=state.legend.map(l=>({...l}));
