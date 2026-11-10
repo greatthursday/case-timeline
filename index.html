@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- The browser enforces this policy: no network requests, no outside scripts, fonts, or images. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Case Timeline Mock-up</title>
+<style id="pagestyle">@page{size:11in 8.5in;margin:0}</style>
+<style>
+:root{--ink:#1c1f23;--muted:#5d6670;--line:#d6dae0;--panel:#f5f6f8;--accent:#1d5fd1;--accent-soft:#e6eefc;--warn:#fff3d6;--warn-ink:#6d4a00}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font:14px/1.4 Arial,Helvetica,sans-serif;color:var(--ink);background:#e7e9ed;display:flex;flex-direction:column}
+.mockbar{background:#1c1f23;color:#fff;padding:5px 16px;font-size:12.5px}
+.top{display:flex;align-items:center;gap:10px;background:#fff;border-bottom:1px solid var(--line);padding:9px 16px;flex-wrap:wrap}
+.top .brand{font-weight:700;margin-right:6px}
+.top .status{color:var(--muted);font-size:12.5px;margin-right:auto}
+button,select,input,textarea{font:inherit;color:inherit}
+button{background:#fff;border:1px solid #b9c0c9;border-radius:4px;padding:6px 11px;cursor:pointer}
+button:hover{background:var(--panel)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button.primary:hover{background:#174fb0}
+button.small{padding:3px 8px;font-size:12.5px}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.main{flex:1;display:flex;min-height:0}
+#stage{flex:1;overflow:auto;padding:16px;min-width:0}
+#warn{display:none;background:var(--warn);color:var(--warn-ink);border:1px solid #e8cf91;border-radius:4px;padding:8px 12px;margin:0 auto 12px;max-width:1056px}
+.paper{position:relative;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.28);margin:0 auto 16px}
+.hot{position:absolute;display:block;background:transparent}
+.hot:hover{background:rgba(29,95,209,.09)}
+.paper svg{display:block;width:100%;height:auto;touch-action:none;user-select:none;-webkit-user-select:none}
+[data-ev]{cursor:grab}[data-act]{cursor:pointer}
+aside{width:348px;flex:none;background:#fff;border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;border-radius:0;border-bottom:3px solid transparent;padding:10px 2px;background:#fff}
+.tabs button.on{border-bottom-color:var(--accent);font-weight:700}
+.panel{flex:1;overflow:auto;padding:14px;display:none}
+.panel.on{display:block}
+label.f{display:block;font-size:12.5px;color:var(--muted);margin:0 0 10px}
+label.f input,label.f textarea,label.f select{display:block;width:100%;margin-top:3px;padding:6px;border:1px solid #b9c0c9;border-radius:4px;color:var(--ink);background:#fff;font-size:14px}
+.check{display:flex;gap:7px;align-items:center;margin:0 0 10px;font-size:13px}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row>*{flex:1}
+.hint{color:var(--muted);font-size:12.5px;margin:0 0 12px}
+h3{font-size:13px;margin:16px 0 8px}
+.card{border:1px solid var(--line);border-radius:5px;padding:10px;margin-bottom:10px;background:#fbfbfc}
+.icongrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:0 0 10px}
+.icongrid button{padding:4px;display:flex;align-items:center;justify-content:center;height:36px}
+.icongrid button.on{background:var(--accent-soft);border-color:var(--accent)}
+#library h4{font-size:12.5px;margin:12px 0 5px}
+.libgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.libtile{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;font-size:10.5px;line-height:1.15;min-height:62px}
+.libtile:disabled{opacity:1;background:var(--accent-soft);border-color:var(--accent);cursor:default}
+.evlist{list-style:none;margin:0;padding:0}
+.evlist li{display:flex;gap:7px;padding:6px 4px;border-bottom:1px solid #eceef1;cursor:pointer;font-size:13px;align-items:flex-start}
+.evlist li:hover{background:var(--panel)}
+.evlist li.on{background:var(--accent-soft)}
+.evlist time{color:var(--muted);font-size:12px;display:block}
+.legrow{display:flex;gap:8px;align-items:center;margin-bottom:6px}
+.legrow input{flex:1;min-width:0;padding:5px;border:1px solid #b9c0c9;border-radius:4px}
+.legrow .n{color:var(--muted);font-size:12px;width:20px;text-align:right}
+.ic{width:22px;height:22px;flex:none;display:block}
+.presets{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.note{background:var(--warn);color:var(--warn-ink);border:1px solid #e8cf91;border-radius:4px;padding:8px 10px;margin:0 0 12px;font-size:13px}
+.stops{margin:0;padding-left:24px;font-size:13px}.stops li{margin-bottom:7px}.stops small{display:block;color:var(--muted);font-size:12px}
+.sec{padding:0;overflow:hidden}
+.sec.dragging{opacity:.45}
+.sec.drop-before{box-shadow:0 -3px 0 var(--accent)}
+.sec.drop-after{box-shadow:0 3px 0 var(--accent)}
+.sechead{display:flex;align-items:center;gap:4px;padding:6px;background:#eef0f3}
+.grip{border:0;background:none;cursor:grab;padding:4px 5px;color:var(--muted);touch-action:none;font-weight:700;letter-spacing:-2px}
+.grip:hover{background:#dfe3e8}
+.sectoggle{flex:1;min-width:0;border:0;background:none;text-align:left;padding:2px 4px;display:flex;gap:6px;align-items:flex-start}
+.sectoggle:hover{background:#dfe3e8}
+.sectoggle b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sectoggle small{display:block}
+.sectoggle small{color:var(--muted);font-size:12px}
+.sectoggle span.t{min-width:0}
+.move{padding:2px 7px}
+.secbody{padding:10px}
+dialog{border:1px solid var(--line);border-radius:6px;padding:18px;width:min(400px,calc(100vw - 32px));color:var(--ink)}
+dialog::backdrop{background:rgba(0,0,0,.35)}
+.sec.off .t{opacity:.5}
+.incl{flex:none;margin:0 2px}
+.rules{border:1px solid var(--line);border-radius:5px;padding:8px 10px;margin:0 0 12px}
+.rules summary{cursor:pointer;font-weight:700;font-size:13px}
+.rules[open] summary{margin-bottom:8px}
+.rr{display:grid;grid-template-columns:1fr 62px 88px;gap:6px;align-items:center;margin-bottom:6px;font-size:13px}
+.rr input,.rr select{width:100%;padding:4px;border:1px solid #b9c0c9;border-radius:4px;background:#fff;font-size:13px}
+#legendrowsrow[hidden]{display:none}
+.rr .u{color:var(--muted);font-size:12.5px}
+.rules h4{font-size:12.5px;margin:12px 0 5px}
+.linechecks{display:grid;grid-template-columns:1fr 1fr;gap:1px 8px;margin-bottom:10px;font-size:13px}
+.linechecks label{display:flex;gap:6px;align-items:center}
+.coordmsg{display:block;font-size:12px;margin-top:3px;min-height:16px}
+@media (max-width:820px){.main{flex-direction:column}aside{width:auto;border-left:0;border-top:1px solid var(--line);height:48%}}
+@media print{
+  html,body{height:auto;background:#fff;display:block}
+  .mockbar,.top,aside,#warn{display:none!important}
+  .main{display:block}#stage{overflow:visible;padding:0}
+  .paper{box-shadow:none;margin:0;break-after:page;page-break-after:always}
+  .paper:last-child{break-after:auto;page-break-after:auto}
+}
+</style>
+</head>
+<body>
+<div class="mockbar">Mock-up with made-up case data. Try anything, but nothing is saved.</div>
+<div class="top">
+  <span class="brand">Case Timeline</span>
+  <select aria-label="Case" disabled><option id="caselabel">SAMPLE-0000 (commercial burglary)</option></select>
+  <span class="status" id="savestatus">The real app saves to Cases/SAMPLE-0000.xlsx in OneDrive</span>
+  <button id="newcasebtn">+ New case</button>
+  <button id="add" class="primary">+ Add event</button>
+  <button id="png">Save page as image</button>
+  <button id="print">Print / Save PDF</button>
+</div>
+<div class="main">
+  <div id="stage"><div id="warn" role="status"></div><div id="pages"></div></div>
+  <aside>
+    <div class="tabs" role="tablist">
+      <button data-tab="events" class="on">Events</button>
+      <button data-tab="lines">Sections</button>
+      <button data-tab="legend">Legend</button>
+      <button data-tab="page">Page</button>
+      <button data-tab="map">Map</button>
+    </div>
+    <section class="panel on" id="p-events"><div id="editor"></div><h3>All events, in order</h3><ul class="evlist" id="evlist"></ul></section>
+    <section class="panel" id="p-lines">
+      <p class="hint">Sections print from top to bottom in this order. Drag the dots to rearrange them. Each section has its own dates and its own amount of time per printed line.</p>
+      <div class="presets"><button class="primary" id="standardbtn">Standard sections</button><button class="primary" id="suggest">Suggest from events</button></div>
+      <p class="note" id="suggestnote" hidden><span id="suggesttext"></span> <button class="small" id="undosuggest">Undo</button></p>
+      <details class="rules" id="rulebox"><summary>Grouping rules</summary>
+        <p class="hint" id="rulestatus"></p>
+        <div id="rules"></div>
+        <button class="small" id="rulereset">Reset to defaults</button>
+      </details>
+      <div class="presets"><button class="small" data-preset="zoom">Sample: zoom in on the incident</button><button class="small" data-preset="day">Per day</button><button class="small" data-preset="week">Per week</button><button class="small" data-preset="month">Per month</button></div>
+      <label class="check"><input type="checkbox" id="hideEmpty" checked> Shrink stretches with no events</label>
+      <div class="presets"><button class="small" data-allsec="close">Close all</button><button class="small" data-allsec="open">Open all</button></div>
+      <p class="note" id="secnote" hidden>These sections are not in date order. Each printed section header shows its dates.</p>
+      <div id="sections"></div>
+      <button id="addsec">+ Add section</button>
+    </section>
+    <section class="panel" id="p-legend">
+      <p class="hint">Rename anything. The legend on the page lists only icons used in this case.</p>
+      <label class="f">Legend on each page<select id="legendmode">
+        <option value="auto">Automatic</option>
+        <option value="all">Everything, on every page</option>
+        <option value="page">Only what is on that page</option>
+        <option value="section">Only what is in that page's sections</option>
+      </select></label>
+      <div class="rr" id="legendrowsrow"><span>Automatic: shorten after</span><input type="number" min="1" step="1" id="legendlimit" aria-label="Rows before the legend shortens"><span class="u">rows</span></div>
+      <p class="hint" id="legendnow"></p>
+      <div id="legendrows"></div>
+      <h3>Chart marks</h3>
+      <p class="hint">These explain the lines on the chart. Each one prints only when the chart uses it.</p>
+      <div id="markrows"></div>
+      <h3>Add from the icon library</h3>
+      <label class="f">Search icons<input id="libsearch" type="search" placeholder="Text, weapon, evidence..."></label>
+      <div id="library"></div>
+      <label class="f">Or use your own small image (SVG or PNG)<input type="file" id="upload" accept=".svg,.png,image/svg+xml,image/png"></label>
+    </section>
+    <section class="panel" id="p-page">
+      <label class="f">Title<input id="f-title"></label>
+      <label class="f">Subtitle<input id="f-subtitle"></label>
+      <label class="f">Case number<input id="f-caseno"></label>
+      <label class="f">Prepared by<input id="f-by"></label>
+      <label class="f">Footer text<input id="f-footer"></label>
+      <label class="f">Paper<select id="f-paper"><option value="letter">Letter, landscape</option><option value="legal">Legal, landscape</option></select></label>
+    </section>
+    <section class="panel" id="p-map">
+      <p class="note">This tool never goes online. Anything you paste or upload into Google leaves this computer, so check agency policy first.</p>
+      <p class="hint">Add an address or coordinates to an event to make it a numbered stop here. If an event has both, the export uses the coordinates. The sample addresses are invented and the sample coordinates are in Lake Michigan, so a real map won't show a real route.</p>
+      <p class="note" id="m-addr" style="display:none"></p>
+      <label class="check"><input type="checkbox" id="m-times"> Include times in KML and CSV files</label>
+      <label class="check"><input type="checkbox" id="m-desc"> Include descriptions in KML and CSV files</label>
+      <h3>Paste into a browser (route link)</h3>
+      <textarea id="m-link" rows="5" readonly aria-label="Route link" style="width:100%;font-size:12px;padding:6px;border:1px solid #b9c0c9;border-radius:4px"></textarea>
+      <div class="row" style="margin:6px 0 4px"><button class="small" id="m-copy">Copy link</button><span class="hint" id="m-copied" style="margin:0" role="status"></span></div>
+      <p class="hint">A route link follows roads between stops. Use a file below to see exact points and the straight-line sequence.</p>
+      <h3>Import into a mapping tool</h3>
+      <div class="row" style="margin-bottom:6px"><button class="small" id="m-csv">Download CSV</button><button class="small" id="m-kml">Download KML</button></div>
+      <p class="hint">When importing the CSV into a map, choose the Location column to place the pins.</p>
+      <p class="hint" id="m-kmlnote"></p>
+      <h3>Stop key (stays in this tool)</h3>
+      <ol class="stops" id="m-stops"></ol>
+    </section>
+  </aside>
+</div>
+<dialog id="newcase"><form id="ncform">
+  <h3 id="nctitle" style="margin-top:0">New case</h3>
+  <label class="f" id="nccasewrap">Case number<input id="nccase" autocomplete="off"></label>
+  <label class="f">Incident date (required)<input id="ncdate" type="date" required></label>
+  <div class="row"><label class="f">Start time (optional)<input id="ncstart" type="time"></label><label class="f">End time (optional)<input id="ncend" type="time"></label></div>
+  <p class="hint">Without times, the Incident covers that whole day. The other sections set their own dates around it, and they grow to include every event you add.</p>
+  <h3>Sections to include</h3>
+  <label class="check"><input type="checkbox" data-ncrole="before" checked> Before the Incident</label>
+  <label class="check"><input type="checkbox" data-ncrole="incident" checked> Incident</label>
+  <label class="check"><input type="checkbox" data-ncrole="response" checked> Response</label>
+  <label class="check"><input type="checkbox" data-ncrole="investigation" checked> Investigation</label>
+  <div class="row" style="margin-top:12px"><button type="button" id="nccancel">Cancel</button><button type="submit" class="primary" id="ncsubmit">Create case</button></div>
+</form></dialog>
+<script>
+'use strict';
+/* ---------- icons: 24x24 line drawings, all hand-authored for this project ---------- */
+const HANDSET='<path d="M6 3h3l1.5 5-2 1.5a12 12 0 0 0 6 6l1.5-2 5 1.5v3a2 2 0 0 1-2 2C11 20 4 13 4 5a2 2 0 0 1 2-2z"/>';
+const lettered=(ch,size)=>`<circle cx="12" cy="12" r="9"/><text x="12" y="16.5" text-anchor="middle" font-family="Arial" font-size="${size||12.5}" font-weight="700" fill="currentColor" stroke="none">${ch}</text>`;
+const ICONS={
+ alarm:'<path d="M6 17h12l-1.5-2.2V10a4.5 4.5 0 0 0-9 0v4.8z"/><path d="M10 20a2 2 0 0 0 4 0M12 5.5V3.5M3.5 9c.2-2 1-3.5 2.3-4.7M20.5 9c-.2-2-1-3.5-2.3-4.7"/>',
+ glass:'<rect x="4" y="3" width="16" height="18"/><path d="M12 12 8 3M12 12 4 9M12 12l8-5M12 12l3 9M12 12l-6 9M12 12l8 4"/>',
+ door:'<path d="M3 21h18M6 21V3h12v18"/><path d="M14.5 12v.01" stroke-width="3"/>',
+ lock:'<rect x="5" y="11" width="14" height="9" rx="1"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+ phone:'<path d="M6 3h3l1.5 5-2 1.5a12 12 0 0 0 6 6l1.5-2 5 1.5v3a2 2 0 0 1-2 2C11 20 4 13 4 5a2 2 0 0 1 2-2z"/>',
+ dispatch:'<rect x="2.5" y="6" width="19" height="12" rx="2"/><text x="12" y="15.5" text-anchor="middle" font-family="Arial" font-size="8.5" font-weight="700" fill="currentColor" stroke="none">911</text>',
+ camera:'<path d="m3 7 13-3.5 2 6.5-13 3.5z"/><path d="M9 12.5 10 17H5v4M18 7l3-1v4l-2.2.7"/>',
+ vehicle:'<path d="M3 16.5v-3.5l2.5-5.5h13L21 13v3.5z"/><path d="M3.5 13h17"/><circle cx="7.5" cy="17.5" r="2"/><circle cx="16.5" cy="17.5" r="2"/>',
+ person:'<circle cx="12" cy="7.5" r="4"/><path d="M4 21c1-5 4-7 8-7s7 2 8 7"/>',
+ officer:'<path d="m12 3 7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z"/><path d="m12 8 1.2 2.5 2.8.3-2 1.9.5 2.8-2.5-1.4-2.5 1.4.5-2.8-2-1.9 2.8-.3z"/>',
+ evidence:'<path d="M5 20 9 5h6l4 15z"/><text x="12" y="16.5" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="currentColor" stroke="none">1</text>',
+ blood:'<path d="M12 3s6 7 6 11.5a6 6 0 0 1-12 0C6 10 12 3 12 3z"/>',
+ firearm:'<path d="M3 7.5h18v4.5h-9l-1 2.5H8l-1 5.5H3.5l1.2-6L6 12H3z"/>',
+ knife:'<path d="M3 21 14 10l-2-2 7-5c2 4 0 9-3 11l-2-2L5 21z"/>',
+ fire:'<path d="M12 3c1 4 6 6.500 6 12a6 6 0 0 1-12 0c0-2 1-4 2.500-5 .3 2 1.500 3 2.500 3 0-4-1-7 1-10z"/>',
+ money:'<rect x="3" y="7" width="18" height="10"/><circle cx="12" cy="12" r="2.500"/><path d="M6 12v.01M18 12v.01" stroke-width="2.500"/>',
+ document:'<path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4M9 12h7M9 16h7"/>',
+ interview:'<circle cx="8" cy="10" r="3.5"/><path d="M2.5 21c.5-4 2.500-6 5.500-6s5 2 5.500 6"/><path d="M13 3h8v6.500h-4.500L14 12V9.500h-1z"/>',
+ arrest:'<circle cx="5.500" cy="14" r="3.800"/><circle cx="18.500" cy="14" r="3.800"/><circle cx="12" cy="14" r="1.300"/><path d="M9.300 14h1.400M13.300 14h1.400M3.500 10.700 5 8h1.500M20.500 10.700 19 8h-1.500"/>',
+ location:'<path d="M12 21s7-6.500 7-12a7 7 0 0 0-14 0c0 5.500 7 12 7 12z"/><circle cx="12" cy="9" r="2.500"/>',
+ clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.500 2"/>',
+ text:'<path d="M4 5h16v11H10l-4 4v-4H4z"/><path d="M8.5 10.5v.01M12 10.5v.01M15.5 10.5v.01" stroke-width="2.6"/>',
+ conversation:'<path d="M3 4h12v8H8l-3 3v-3H3z"/><path d="M18 9h3v8h-2v3l-3-3h-6v-2"/>',
+ phonein:HANDSET+'<path d="M21 3l-6 6M15 4v5h5"/>',
+ phoneout:HANDSET+'<path d="M15 9l6-6M16 3h5v5"/>',
+ missed:HANDSET+'<path d="m15 3 6 6M21 3l-6 6"/>',
+ voicemail:'<circle cx="6.5" cy="12" r="3.5"/><circle cx="17.5" cy="12" r="3.5"/><path d="M6.5 15.5h11"/>',
+ email:'<rect x="3" y="5" width="18" height="14" rx="1"/><path d="m3 7 9 7 9-7"/>',
+ social:'<rect x="3" y="3" width="18" height="18" rx="3"/><path d="M10 7 8.5 17M15.5 7 14 17M7 10.5h10.500M6.500 14H17"/>',
+ radio:'<rect x="7" y="8" width="10" height="13" rx="1.5"/><path d="M10 8V2.500M10 12h4M10 15h4M10 18h4"/>',
+ smartphone:'<rect x="7" y="2.500" width="10" height="19" rx="2"/><path d="M11 18.500h2"/>',
+ laptop:'<rect x="5" y="5" width="14" height="10" rx="1"/><path d="M2.500 19h19l-2.500-4H5z"/>',
+ celltower:'<path d="M12 9 7.500 21.500M12 9l4.500 12.500M9.500 16h5"/><circle cx="12" cy="7" r="1.500"/><path d="M8 3.500a5.500 5.500 0 0 0 0 7M16 3.500a5.500 5.500 0 0 1 0 7"/>',
+ photo:'<path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13.500" r="3.500"/>',
+ bodycam:'<rect x="6" y="6" width="12" height="15" rx="2"/><circle cx="12" cy="13" r="3.500"/><path d="M9 6V3h6v3"/>',
+ microphone:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21M8.500 21h7"/>',
+ plate:'<rect x="2.500" y="7" width="19" height="10" rx="1.500"/><text x="12" y="14.500" text-anchor="middle" font-family="Arial" font-size="6.500" font-weight="700" fill="currentColor" stroke="none">ABC</text>',
+ weapon:'<circle cx="12" cy="12" r="6.500"/><path d="M12 2.500v5M12 16.500v5M2.500 12h5M16.500 12h5"/>',
+ blunt:'<path d="M3 19.500 13.500 9c1.500-3.500 5-6.500 6.500-5s-1.500 5-5 6.500L4.500 21z"/><path d="M2 18.500 5.500 22"/>',
+ casing:'<path d="M9 21V10c0-3 1.500-6 3-7 1.500 1 3 4 3 7v11z"/><path d="M9 12h6M8 21h8"/>',
+ rifle:'<path d="M2 11h13l2-2h5v3h-6l-2 2H9l-2 5H4l1.500-5H2z"/>',
+ bag:'<path d="M5 7h14v14H5z"/><path d="M8 3h8v4H8zM5 11h14M8.500 15h7M8.500 18h4"/>',
+ fingerprint:'<path d="M12 4a8 8 0 0 0-8 8v3M12 4a8 8 0 0 1 8 8v2M12 8a4 4 0 0 0-4 4v4c0 2 .5 3 1.500 4.500M12 8a4 4 0 0 1 4 4v3c0 2.500-.5 4-1 5M12 12v4c0 1.500.4 3 1 4.500"/>',
+ footprint:'<path d="M9.500 2.500c3.500-1 7 1.500 7 5.500 0 2-1 3.500-1.500 5.500H8.500C8 11.500 6.500 10 6.500 7.500c0-2.500 1-4.300 3-5z"/><path d="M9 16h5.500v2.500a2.750 2.750 0 0 1-5.500 0z"/>',
+ dna:'<path d="M8 3c0 5 8 6 8 9s-8 4-8 9M16 3c0 5-8 6-8 9s8 4 8 9M9 6h6M9 18h6"/>',
+ drugs:'<rect x="3" y="8.500" width="18" height="7" rx="3.500" transform="rotate(-45 12 12)"/><path d="m9.500 9.500 5 5"/>',
+ lab:'<path d="M9 3h6M10 3v6L5 19a1.500 1.500 0 0 0 1.400 2h11.200A1.500 1.500 0 0 0 19 19L14 9V3M7.500 15h9"/>',
+ magnifier:'<circle cx="10.500" cy="10.500" r="6.500"/><path d="m15.500 15.500 5.500 5.500"/>',
+ property:'<path d="m3 8 9-5 9 5v9l-9 5-9-5z"/><path d="m3 8 9 5 9-5M12 13v9"/>',
+ gavel:'<rect x="9" y="3.500" width="11" height="6" rx="1" transform="rotate(45 14.500 6.500)"/><path d="m11 10-8 8 2.500 2.500 8-8M12 21h9"/>',
+ warrant:'<path d="M6 3h12v18H6z"/><path d="M9 8h6M9 11h6"/><circle cx="14" cy="16" r="2.500"/>',
+ victim:lettered('V'),
+ suspect:lettered('S'),
+ witness:lettered('W',11),
+ group:'<circle cx="9" cy="8" r="3.500"/><path d="M2.500 20c.5-4.500 3-6.500 6.500-6.500s6 2 6.500 6.500"/><path d="M15 4.700a3.500 3.500 0 0 1 0 6.600M18 14c2 .8 3.200 2.800 3.500 6"/>',
+ medical:'<circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/>',
+ ambulance:'<path d="M2.500 17V7h12v10zM14.500 11h4l3 3v3h-7"/><circle cx="7" cy="18" r="1.800"/><circle cx="17.500" cy="18" r="1.800"/><path d="M8.500 9.500V14M6.200 11.700h4.600"/>',
+ deceased:'<path d="M7 21V9a5 5 0 0 1 10 0v12z"/><path d="M4 21h16M12 9v6M10 11h4"/>',
+ patrol:'<path d="M3 16.500v-3.500l2.500-5.500h13L21 13v3.500z"/><path d="M3.500 13h17"/><circle cx="7.500" cy="17.500" r="2"/><circle cx="16.500" cy="17.500" r="2"/><path d="M9.500 3.500h5v4h-5z"/>',
+ k9:'<path d="M12 12c-3 0-5.500 2.500-5.500 5 0 2 1.500 3 3 3 1 0 1.500-.5 2.500-.5s1.500.5 2.500.5c1.500 0 3-1 3-3 0-2.500-2.500-5-5.500-5z"/><circle cx="5" cy="10.500" r="1.700"/><circle cx="9.500" cy="6" r="1.700"/><circle cx="14.500" cy="6" r="1.700"/><circle cx="19" cy="10.500" r="1.700"/>',
+ pursuit:'<path d="m5 6 6 6-6 6M13 6l6 6-6 6"/>',
+ home:'<path d="M3 11.500 12 4l9 7.500M5.500 10v10.500h13V10M10 20.500V14h4v6.500"/>',
+ business:'<path d="M4 11v9.500h16V11M3 4h18l1 5a2 2 0 0 1-4 0 2 2 0 0 1-4 0 2 2 0 0 1-4 0 2 2 0 0 1-4 0 2 2 0 0 1-4 0zM10 20.500V15h4v5.500"/>',
+ key:'<circle cx="8" cy="15.500" r="4.500"/><path d="M11.500 12.500 20 4M16 8l3 3M18.500 5.500l2 2"/>',
+ card:'<rect x="2.500" y="5.500" width="19" height="13" rx="1.500"/><path d="M2.500 10h19M6 14.500h4"/>',
+ power:'<path d="M13 2.500 5 13.500h6l-1 8 8-11h-6z"/>',
+ impact:'<path d="m12 2 2 5 5-3-2 6 5 2-5 2 2 6-5-3-2 5-2-5-5 3 2-6-5-2 5-2-2-6 5 3z"/>',
+ truck:'<path d="M2.500 17V6h11v11zM13.500 10h5l3 4v3h-8"/><circle cx="6.500" cy="18" r="1.800"/><circle cx="17" cy="18" r="1.800"/>',
+ bicycle:'<circle cx="6" cy="16" r="4"/><circle cx="18" cy="16" r="4"/><path d="M6 16 10 8h6l2 8M10 8l4 8H6M14.500 5.500H17"/>',
+ calendar:'<rect x="4" y="5" width="16" height="16" rx="1"/><path d="M4 10h16M8.500 3v4M15.500 3v4"/>',
+ flag:'<path d="M5.500 21.500V3.500M5.500 4.500h13l-3 4 3 4h-13"/>',
+ star:'<path d="m12 3 2.800 5.800 6.200.9-4.500 4.400 1.100 6.300-5.600-3-5.600 3 1.100-6.300L3 9.700l6.200-.9z"/>',
+ unknown:lettered('?',13),
+ important:'<path d="M12 3.500 22 20.500H2z"/><path d="M12 10v5M12 17.500v.01"/>'
+};
+const ICON_GROUPS=[
+ ['Calls and messages',['phone','phonein','phoneout','missed','voicemail','text','conversation','email','social','radio','dispatch','smartphone','laptop','celltower']],
+ ['Recordings',['camera','bodycam','photo','microphone','plate']],
+ ['Scene and entry',['alarm','glass','door','lock','key','power','fire','impact']],
+ ['Weapons',['weapon','firearm','rifle','knife','blunt','casing']],
+ ['Evidence',['evidence','bag','fingerprint','footprint','blood','dna','drugs','lab','magnifier','property']],
+ ['People',['person','victim','suspect','witness','group','interview','officer','k9','arrest']],
+ ['Medical',['medical','ambulance','deceased']],
+ ['Vehicles and places',['vehicle','patrol','truck','bicycle','pursuit','location','home','business']],
+ ['Legal and money',['document','warrant','gavel','money','card']],
+ ['Markers',['clock','calendar','flag','star','important','unknown']]
+];
+const LIBRARY_NAMES={alarm:'Alarm',glass:'Glass break',door:'Forced entry',lock:'Secured / locked',phone:'Phone call',dispatch:'911 / dispatch',camera:'Video',vehicle:'Vehicle',person:'Person seen',officer:'Police action',evidence:'Evidence',blood:'Biological evidence',firearm:'Firearm',knife:'Edged weapon',fire:'Fire',money:'Transaction',document:'Legal / records',interview:'Interview',arrest:'Arrest',location:'Location',clock:'Time marker',text:'Text message',conversation:'Conversation',phonein:'Incoming call',phoneout:'Outgoing call',missed:'Missed call',voicemail:'Voicemail',email:'Email',social:'Social media',radio:'Radio traffic',smartphone:'Mobile phone',laptop:'Computer',celltower:'Cell tower',photo:'Photo',bodycam:'Body camera',microphone:'Audio recording',plate:'License plate',weapon:'Weapon',blunt:'Blunt object',casing:'Shell casing',rifle:'Long gun',bag:'Evidence bag',fingerprint:'Fingerprint',footprint:'Footprint',dna:'DNA',drugs:'Drugs',lab:'Lab result',magnifier:'Search',property:'Property',gavel:'Court',warrant:'Warrant',victim:'Victim',suspect:'Suspect',witness:'Witness',group:'Group',medical:'Medical',ambulance:'Ambulance',deceased:'Deceased',patrol:'Patrol unit',k9:'K-9',pursuit:'Pursuit',home:'Residence',business:'Business',key:'Keys',card:'Card used',power:'Power loss',impact:'Impact',truck:'Truck',bicycle:'Bicycle',calendar:'Date marker',flag:'Note',star:'Key event',unknown:'Unconfirmed',important:'Important'};
+
+/* ---------- starting values for the Grouping rules panel ---------- */
+const LINE_CHOICES=[[1,'minute'],[5,'minute'],[10,'minute'],[15,'minute'],[30,'minute'],[1,'hour'],[2,'hour'],[3,'hour'],[6,'hour'],[12,'hour'],[1,'day'],[1,'week'],[1,'month'],[1,'year']];
+const lineKey=(n,u)=>n+' '+u;
+const SUGGEST_DEFAULTS={burst:{v:1,u:'hour'},active:{v:1,u:'day'},minGroup:3,maxPerLine:8,maxSections:8,spanPct:120,beforeLen:{v:30,u:'day'},incidentLen:{v:2,u:'hour'},responseLen:{v:1,u:'day'},investigationLen:{v:30,u:'day'},floors:[{v:30,u:'minute'},{v:6,u:'hour'},{v:1,u:'day'}],lines:LINE_CHOICES.map(([n,u])=>lineKey(n,u))};
+const copyDefaults=()=>JSON.parse(JSON.stringify(SUGGEST_DEFAULTS));
+
+/* ---------- made-up sample case ---------- */
+const state={
+ suggest:copyDefaults(),
+ meta:{title:'Timeline of Events',subtitle:'Commercial burglary, 400 block of Example St.',caseno:'SAMPLE-0000',by:'Det. (name)',footer:'Sample only. All people and events are fictional.',paper:'letter'},
+ hideEmpty:true,
+ legendMode:'auto',legendLimit:3,
+ markNames:{dot:'Event time',exact:'Exact time',approx:'~ Approximate time',bar:'Duration',group:'Events close together',gap:'Time skipped'},
+ legend:['person','vehicle','phone','lock','camera','glass','alarm','dispatch','officer','evidence','interview','document','money','arrest'].map(k=>({id:k,icon:k,name:LIBRARY_NAMES[k]})),
+ events:[
+  ['2026-02-17T13:05','person','S1 seen walking rear lot, per W1'],
+  ['2026-02-24T16:40','vehicle','Gray sedan parked in rear lot for 40 min'],
+  ['2026-03-02T11:15','phone','Caller asks store about closing hours'],
+  ['2026-03-09T21:30','lock','V1 locks store, sets alarm'],
+  ['2026-03-10T01:42','camera','Rear camera goes offline'],
+  ['2026-03-10T01:47','vehicle','Gray sedan enters rear lot'],
+  ['2026-03-10T01:52','glass','Rear window broken'],
+  ['2026-03-10T01:52','alarm','Glass-break sensor trips'],
+  ['2026-03-10T01:54','phone','Alarm company calls V1, no answer'],
+  ['2026-03-10T01:58','dispatch','Alarm company calls dispatch'],
+  ['2026-03-10T02:03','vehicle','Sedan leaves southbound, per W2',1],
+  ['2026-03-10T02:06','officer','First unit arrives'],
+  ['2026-03-10T02:11','officer','Building cleared, scene secured'],
+  ['2026-03-10T03:30','evidence','Swab collected from window frame'],
+  ['2026-03-10T08:10','interview','V1 statement taken'],
+  ['2026-03-12T10:20','document','Records warrant served'],
+  ['2026-03-16T15:45','money','Stolen item sold at pawn shop'],
+  ['2026-03-19T09:00','document','Phone records returned'],
+  ['2026-03-24T06:05','arrest','S1 arrested on warrant'],
+  ['2026-03-24T09:30','interview','S1 interviewed']
+ ].map((a,i)=>({id:'e'+i,t:a[0],icon:a[1],title:a[2],approx:!!a[3],end:'',notes:'',dx:null,dy:null})),
+ sections:[]
+};
+function zoomSections(){return [
+ {name:'Before the incident',start:'2026-02-16T00:00',end:'2026-03-09T00:00',n:1,unit:'week'},
+ {name:'Evening before',start:'2026-03-09T20:00',end:'2026-03-10T01:30',n:6,unit:'hour'},
+ {name:'Break-in',start:'2026-03-10T01:30',end:'2026-03-10T02:30',n:30,unit:'minute'},
+ {name:'Response and evidence',start:'2026-03-10T02:30',end:'2026-03-10T12:00',n:12,unit:'hour'},
+ {name:'Investigation',start:'2026-03-10T12:00',end:'2026-03-30T00:00',n:1,unit:'week'}
+];}
+state.sections=zoomSections();
+/* Sample addresses are invented, and sample coordinates are in open water, so neither can point at a real place. */
+const SAMPLE_PLACES={store:['Store front','','400 Example St, Sampleville, ZZ 00000'],rear:['Rear lot','43.8004, -87.1000','400 Example St, Sampleville, ZZ 00000'],south:['W2 sighting','','Example St & Test Ave, Sampleville, ZZ 00000'],pawn:['Pawn shop','','900 Sample Blvd, Sampleville, ZZ 00000'],arrest:['Arrest location','43.8300, -87.1500','']};
+Object.entries({0:'rear',1:'rear',3:'store',4:'rear',5:'rear',6:'rear',7:'rear',10:'south',11:'store',12:'store',13:'rear',16:'pawn',18:'arrest'}).forEach(([i,k])=>{const e=state.events[i],p=SAMPLE_PLACES[k];e.place=p[0];e.coords=p[1];e.address=p[2];});
+let selected=null,uid=100;
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const pad=n=>String(n).padStart(2,'0');
+const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
+const md=d=>MON[d.getMonth()]+' '+d.getDate();
+const local=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+hm(d);
+const sorted=()=>[...state.events].sort((a,b)=>new Date(a.t)-new Date(b.t));
+const legendOf=id=>state.legend.find(l=>l.id===id)||{id,icon:'clock',name:'(no legend entry)'};
+function iconMarkup(item,x,y,size){
+ if(item.img)return `<image href="${item.img}" x="${x}" y="${y}" width="${size}" height="${size}"/>`;
+ return `<svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#111" color="#111" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[item.icon]||''}</svg>`;
+}
+const iconTag=item=>item.img?`<img class="ic" alt="" src="${item.img}">`:`<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" color="currentColor" stroke-width="1.700" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[item.icon]||''}</svg>`;
+const ctx=document.createElement('canvas').getContext('2d');
+function mw(t,bold,size=10.5){ctx.font=(bold?'700 ':'')+size+'px Arial, Helvetica, sans-serif';return ctx.measureText(t).width;}
+function addUnit(t,n,u){const x=new Date(t);
+ if(u==='minute')x.setMinutes(x.getMinutes()+n);
+ else if(u==='hour')x.setHours(x.getHours()+n);
+ else if(u==='day')x.setDate(x.getDate()+n);
+ else if(u==='week')x.setDate(x.getDate()+7*n);
+ else if(u==='month')x.setMonth(x.getMonth()+n);
+ else x.setFullYear(x.getFullYear()+n);
+ return x;}
+
+/* ---------- turn sections into printed lines ---------- */
+function rangeText(a,b){
+ const mid=d=>d.getHours()===0&&d.getMinutes()===0,y=a.getFullYear();
+ if(mid(a)&&mid(b)){const last=new Date(b-1);return a.toDateString()===last.toDateString()?md(a)+', '+y:md(a)+' to '+md(last)+', '+last.getFullYear();}
+ if(a.toDateString()===b.toDateString())return md(a)+', '+y+', '+hm(a)+' to '+hm(b);
+ return md(a)+', '+y+', '+hm(a)+' to '+md(b)+', '+hm(b);
+}
+const resText=s=>{const n=Math.max(1,+s.n||1);return n+' '+s.unit+(n>1?'s':'');};
+const validSection=s=>s.start&&s.end&&new Date(s.start)<new Date(s.end);
+function buildRows(){
+ const rows=[],heads=[],evs=sorted(),shown=new Set();let tooMany=false;
+ const inRange=(e,a,b)=>{const T=+new Date(e.t);return T>=a&&T<b;};
+ const barIn=(e,a,b)=>e.end&&+new Date(e.t)<b&&+new Date(e.end)>a;
+ const secs=state.sections.filter(s=>s.include!==false&&validSection(s));
+ secs.forEach((s,i)=>{
+  const st=new Date(s.start),en=new Date(s.end),range=rangeText(st,en),res=resText(s);
+  if(i){const pe=new Date(secs[i-1].end);if(st>pe)rows.push({type:'gap',start:pe,end:st,kind:'skip'});}
+  const head={type:'section',label:s.name||range,named:!!s.name,range,res,count:0,sub:(s.name?range+'   |   ':'')+'Each line = '+res};
+  rows.push(head);heads.push(head);
+  let t=new Date(s.start),guard=0,empty=null;const n=Math.max(1,+s.n||1);
+  const flush=()=>{if(empty){rows.push({type:'gap',start:empty.a,end:empty.b,kind:'empty',head});empty=null;}};
+  while(t<en){
+   if(++guard>300){tooMany=true;break;}
+   let next=addUnit(t,n,s.unit);if(next>en)next=en;
+   const a=+t,b=+next,items=evs.filter(e=>inRange(e,a,b)),bars=evs.filter(e=>barIn(e,a,b));
+   items.forEach(e=>shown.add(e.id));
+   head.count+=items.length;
+   if(!items.length&&!bars.length&&state.hideEmpty){if(empty)empty.b=next;else empty={a:t,b:next};}
+   else{flush();rows.push({type:'line',start:t,end:next,unit:s.unit,n,items,bars,head});}
+   t=next;
+  }
+  flush();
+ });
+ return {rows,heads,missing:evs.filter(e=>!shown.has(e.id)),tooMany};
+}
+
+/* ---------- lay out one line: cards never overlap and leaders never cross cards ---------- */
+function wrapRow(time,title,maxW){
+ const tw=mw(time,true)+5,words=String(title||'(untitled)').split(/\s+/),lines=[];let cur='',limit=maxW-tw;
+ for(const w of words){const test=cur?cur+' '+w:w;if(mw(test)>limit&&cur){lines.push(cur);cur=w;limit=maxW;}else cur=test;}
+ lines.push(cur);
+ const width=Math.max(tw+mw(lines[0]),...lines.slice(1).map(l=>mw(l)));
+ return {lines:lines.slice(0,3),width,tw};
+}
+function layoutLine(row,x0,x1,maxH){
+ const span=row.end-row.start,scale=t=>x0+(t-row.start)/span*(x1-x0),longLine=span>864e5*1.01;
+ const entries=row.items.map(e=>({e,x:scale(+new Date(e.t))})).sort((a,b)=>a.x-b.x);
+ const clusters=[];
+ for(const en of entries){const last=clusters[clusters.length-1];if(last&&en.x-last.x<9)last.members.push(en);else clusters.push({x:en.x,members:[en]});}
+ const cards=clusters.map(c=>{
+  const rowsIn=c.members.map(({e})=>{const d=new Date(e.t),time=(e.approx?'~':'')+(longLine?(d.getMonth()+1)+'/'+d.getDate()+' ':'')+hm(d),w=wrapRow(time,e.title,158);return {e,time,...w,h:Math.max(24,w.lines.length*12.5+7)};});
+  const w=Math.max(...rowsIn.map(r=>r.width))+36,h=rowsIn.reduce((s,r)=>s+r.h,0);
+  return {x:c.x,w,h,rows:rowsIn,cx:Math.min(c.x,x1-w),members:c.members};
+ }).sort((a,b)=>b.x-a.x);
+ /* All positions are relative to the axis: negative is above it. Moved boxes are placed first and the rest flow around them. */
+ const ABOVE=-14,BELOW=18,clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+ const leader=(c,top)=>{const edge=top<0?top+c.h:top,lx=clamp(c.x,c.cx,c.cx+c.w);return {x1:Math.min(c.x,lx)-3,x2:Math.max(c.x,lx)+3,y1:Math.min(0,edge),y2:Math.max(0,edge)};};
+ const boxesHit=(c,top,p)=>c.cx<p.cx+p.w+5&&p.cx<c.cx+c.w+5&&top<p.top+p.h+4&&p.top<top+c.h+4;
+ const lineHits=(l,cx,w,top,h)=>l.x1<cx+w&&l.x2>cx&&l.y1<top+h&&l.y2>top;
+ const fits=(list,c,top)=>list.every(p=>!boxesHit(c,top,p)&&!lineHits(leader(p,p.top),c.cx,c.w,top,c.h)&&!lineHits(leader(c,top),p.cx,p.w,p.top,p.h));
+ cards.forEach(c=>{c.k=c.rows[0].e;c.pinned=c.k.dx!=null&&c.k.dy!=null;c.pull=0;});
+ const pinned=cards.filter(c=>c.pinned).sort((a,b)=>(b.k.pinSeq||0)-(a.k.pinSeq||0)),autos=cards.filter(c=>!c.pinned);
+ let above=0,below=0;
+ const place=()=>{
+  const list=[];
+  for(const c of pinned){
+   c.cx=clamp(c.x+c.k.dx,x0,Math.max(x0,x1-c.w));
+   let t=c.k.dy;
+   if(t+c.h>ABOVE&&t<BELOW)t=t+c.h/2<2?ABOVE-c.h:BELOW;
+   if(c.pull)t=t<0?Math.min(t+c.pull,ABOVE-c.h):Math.max(t-c.pull,BELOW);
+   for(let i=0;i<60;i++){const p=list.find(q=>boxesHit(c,t,q));if(!p)break;t=t<0?p.top-4-c.h:p.top+p.h+4;}
+   c.top=t;list.push(c);
+  }
+  for(const c of autos){
+   c.cx=Math.min(c.x,x1-c.w);
+   const options=(side)=>{const first=side==='up'?ABOVE-c.h:BELOW,more=list.map(p=>side==='up'?p.top-4-c.h:p.top+p.h+4).filter(t=>side==='up'?t<first:t>first);return [first,...more].sort((a,b)=>Math.abs(a)-Math.abs(b));};
+   const best=side=>{const o=options(side);return o.find(t=>fits(list,c,t))??o[o.length-1];};
+   const tu=best('up'),td=best('dn'),du=-tu-c.h+ABOVE,dd=td-BELOW,sides=s=>list.filter(p=>s==='up'?p.top<0:p.top>=0).length;
+   c.top=du<dd?tu:dd<du?td:(sides('up')<=sides('dn')?tu:td);
+   list.push(c);
+  }
+  above=Math.max(28,...cards.map(c=>-c.top));
+  below=Math.max(24,...cards.map(c=>c.top+c.h))+14;
+ };
+ for(let i=0;i<8;i++){
+  place();
+  const over=above+below-(maxH||Infinity);
+  if(over<=0||!pinned.length)break;
+  pinned.reduce((a,b)=>Math.max(-a.top,a.top+a.h)>=Math.max(-b.top,b.top+b.h)?a:b).pull+=over;
+ }
+ return {cards,above,below,height:above+below,scale};
+}
+function ticks(row,x0,x1){
+ const span=row.end-row.start,W=x1-x0,MIN=6e4,out=[];
+ const options=[1,2,5,10,15,30,60,120,180,360,720,1440,2880,10080];
+ const stepMin=options.find(m=>m*MIN/span*W>=62);
+ const s=row.start;
+ if(stepMin&&stepMin<1440){for(let k=0;k<20000;k++){const d=new Date(s.getFullYear(),s.getMonth(),s.getDate(),0,k*stepMin);if(d>row.end)break;if(d>=s)out.push({d,label:(d.getHours()===0&&d.getMinutes()===0&&span>864e5)?md(d):hm(d)});}}
+ else if(stepMin){const days=stepMin/1440;for(let k=0;k<4000;k++){const d=new Date(s.getFullYear(),s.getMonth(),s.getDate()+k*days);if(d>row.end)break;out.push({d,label:md(d)});}}
+ else{for(let k=0;k<1200;k++){const d=new Date(s.getFullYear(),s.getMonth()+k,1);if(d>row.end)break;if(d>=s)out.push({d,label:MON[d.getMonth()]+(d.getMonth()===0?' '+d.getFullYear():'')});}}
+ return out;
+}
+function rowLabel(r){
+ const a=r.start,b=new Date(r.end-1),span=r.end-r.start;
+ if(r.unit==='year')return [String(a.getFullYear()),''];
+ if(r.unit==='month')return [MON[a.getMonth()]+' '+a.getFullYear(),''];
+ if(span>864e5)return [md(a)+' to',md(b)+', '+b.getFullYear()];
+ if(r.unit==='day')return [DOW[a.getDay()]+' '+md(a),String(a.getFullYear())];
+ if(a.toDateString()!==b.toDateString())return [md(a)+' '+hm(a)+' to',md(r.end)+' '+hm(r.end)];
+ return [DOW[a.getDay()]+' '+md(a),hm(a)+' to '+hm(r.end)];
+}
+function gapText(r){
+ const ms=r.end-r.start,d=Math.round(ms/864e5),h=Math.round(ms/36e5);
+ const len=d>=2?d+' days':h>=1?h+(h===1?' hour':' hours'):Math.round(ms/6e4)+' min';
+ const sameDay=r.start.toDateString()===new Date(r.end-1).toDateString();
+ const range=d>=2?md(r.start)+' to '+md(r.end):sameDay?md(r.start)+', '+hm(r.start)+' to '+hm(r.end):md(r.start)+' '+hm(r.start)+' to '+md(r.end)+' '+hm(r.end);
+ return (r.kind==='empty'?'No events':'Not shown')+', '+len+' ('+range+')';
+}
+
+/* ---------- pages ---------- */
+function drawRow(r,top,L,R){
+ if(r.type==='section'){
+  const subW=mw(r.sub,false,10),name=fit(r.label,R-L-subW-40,true,12.5),b=top+6;
+  return `<g data-act="lines"><rect x="${L}" y="${b}" width="${R-L}" height="22" fill="#111"/><text x="${L+8}" y="${b+15.5}" font-size="12.5" font-weight="700" fill="#fff">${esc(name)}</text><text x="${R-8}" y="${b+15}" text-anchor="end" font-size="10" fill="#fff">${esc(r.sub)}</text></g>`;
+ }
+ if(r.type==='gap'){const y=top+11;return `<g data-act="lines"><line x1="${L+92}" x2="${R}" y1="${y}" y2="${y}" stroke="#999" stroke-width="1" stroke-dasharray="2 5"/><rect x="${(L+92+R)/2-mw(gapText(r),false,9.5)/2-8}" y="${y-7}" width="${mw(gapText(r),false,9.5)+16}" height="14" fill="#fff"/><text x="${(L+92+R)/2}" y="${y+3.500}" text-anchor="middle" font-size="9.500" font-style="italic" fill="#555">${esc(gapText(r))}</text></g>`;}
+ const x0=L+96,x1=R-4,lay=r.lay,axis=top+lay.above;let s='';
+ const [l1,l2]=rowLabel(r);
+ s+=`<g data-act="lines"><text x="${L}" y="${axis-2}" font-size="10.500" font-weight="700" fill="#111">${esc(l1)}</text><text x="${L}" y="${axis+11}" font-size="9.500" fill="#444">${esc(l2)}</text></g>`;
+ s+=`<line data-act="lines" x1="${x0}" x2="${x1}" y1="${axis}" y2="${axis}" stroke="#111" stroke-width="1.400"/>`;
+ for(const k of ticks(r,x0,x1)){const x=lay.scale(+k.d);s+=`<line x1="${x}" x2="${x}" y1="${axis-3}" y2="${axis+3}" stroke="#111" stroke-width="0.800"/><text x="${x}" y="${axis+14}" text-anchor="middle" font-size="9" fill="#444" stroke="#fff" stroke-width="3" paint-order="stroke">${k.label}</text>`;}
+ for(const e of r.bars){const a=Math.max(lay.scale(+new Date(e.t)),x0),b=Math.min(lay.scale(+new Date(e.end)),x1);s+=`<rect x="${a}" y="${axis-2.500}" width="${Math.max(b-a,2)}" height="5" fill="#111"/>`;}
+ const leaders=[],boxes=[];
+ for(const c of lay.cards){
+  const key=c.k,cx=c.cx,boxY=axis+c.top;
+  const edge=c.top<0?boxY+c.h:boxY,lx=Math.max(cx,Math.min(c.x,cx+c.w));
+  const dashed=c.rows.some(q=>q.e.approx)?' stroke-dasharray="3 2"':'';
+  leaders.push(`<line x1="${c.x}" y1="${axis}" x2="${lx}" y2="${edge}" stroke="#555" stroke-width="0.800"${dashed}/>`);
+  for(const m of c.members)leaders.push(`<circle cx="${m.x}" cy="${axis}" r="3.200" fill="#111" stroke="#fff" stroke-width="1"/>`);
+  const isSel=c.rows.some(q=>q.e.id===selected);
+  let g=`<g data-card="${key.id}" data-ox="${cx-c.x}" data-top="${c.top}"><rect x="${cx}" y="${boxY}" width="${c.w}" height="${c.h}" rx="3" fill="#fff" stroke="${isSel?'#1d5fd1':'#aaa'}" stroke-width="${isSel?2:0.700}"/>`;
+  let yy=boxY;
+  for(const q of c.rows){
+   g+=`<g data-ev="${q.e.id}"><rect x="${cx}" y="${yy}" width="${c.w}" height="${q.h}" fill="transparent"/>`+iconMarkup(legendOf(q.e.icon),cx+5,yy+3,18);
+   g+=`<text x="${cx+28}" y="${yy+13.500}" font-size="10.500" fill="#111"><tspan font-weight="700">${esc(q.time)}</tspan><tspan dx="5">${esc(q.lines[0])}</tspan></text>`;
+   q.lines.slice(1).forEach((l,i)=>{g+=`<text x="${cx+28}" y="${yy+13.500+(i+1)*12.500}" font-size="10.500" fill="#111">${esc(l)}</text>`;});
+   g+='</g>';yy+=q.h;
+  }
+  boxes.push(g+'</g>');
+ }
+ return s+leaders.join('')+boxes.join('');
+}
+function fit(text,maxW,bold,size){
+ let t=String(text);
+ if(mw(t,bold,size)<=maxW)return t;
+ while(t.length>1&&mw(t+'...',bold,size)>maxW)t=t.slice(0,-1);
+ return t+'...';
+}
+function legendLayout(items,L,R){
+ let x=L+58,y=0;const out=[];
+ for(const it of items){const w=24+mw(it.name,false,10)+16;if(x+w>R&&x>L+58){x=L+58;y+=22;}out.push({it,x,y});x+=w;}
+ return {out,h:y+22};
+}
+function markSwatch(k,x,y){
+ const body={
+  dot:'<line x1="0" x2="18" y1="9" y2="9" stroke="#111" stroke-width="1.4"/><circle cx="9" cy="9" r="3.2" fill="#111" stroke="#fff" stroke-width="1"/>',
+  exact:'<line x1="9" x2="9" y1="1" y2="17" stroke="#555" stroke-width="1"/>',
+  approx:'<line x1="9" x2="9" y1="1" y2="17" stroke="#555" stroke-width="1" stroke-dasharray="3 2"/>',
+  bar:'<rect x="1" y="6.5" width="16" height="5" fill="#111"/>',
+  group:'<rect x="1" y="2" width="16" height="14" rx="2" fill="#fff" stroke="#888" stroke-width="0.8"/><line x1="4" x2="14" y1="6.5" y2="6.5" stroke="#111"/><line x1="4" x2="14" y1="11.5" y2="11.5" stroke="#111"/>',
+  gap:'<line x1="0" x2="18" y1="9" y2="9" stroke="#777" stroke-width="1" stroke-dasharray="2 5"/>'
+ }[k];
+ return `<g transform="translate(${x} ${y})">${body}</g>`;
+}
+function renderChart(){
+ updateAutoSections();
+ const m=state.meta,W=m.paper==='legal'?1344:1056,H=816,MX=40,L=MX,R=W-MX,TOP=102;
+ $('#pagestyle').textContent=`@page{size:${m.paper==='legal'?'14in':'11in'} 8.5in;margin:0}`;
+ const built=buildRows(),used=[...new Set(state.events.map(e=>e.icon))];
+ const layoutAll=maxH=>built.rows.forEach(r=>{
+  if(r.type==='line'){r.lay=layoutLine(r,L+96,R-4,maxH);r.h=r.lay.height;}
+  else r.h=r.type==='section'?34:22;
+ });
+ /* First pass finds which marks appear, because the legend's height sets how much room each page has. */
+ layoutAll(0);
+ const lines=built.rows.filter(r=>r.type==='line'),shownEv=lines.flatMap(r=>r.items);
+ const flags={dot:shownEv.length>0,exact:shownEv.some(e=>!e.approx),approx:shownEv.some(e=>e.approx),bar:lines.some(r=>r.bars.length>0),group:lines.some(r=>r.lay.cards.some(c=>c.rows.length>1)),gap:built.rows.some(r=>r.type==='gap')};
+ const items=[...state.legend.filter(l=>used.includes(l.id)),...Object.keys(state.markNames).filter(k=>flags[k]).map(k=>({mark:k,name:state.markNames[k]}))];
+ const leg=legendLayout(items,L,R),bottom=H-34-30-leg.h,maxH=bottom-TOP-34;
+ layoutAll(maxH);
+ const tocH=built.heads.length?20+built.heads.length*16+14:0,pages=[[]];
+ /* A shorter legend leaves more room for lines, so each page is sized from the legend it will actually show. */
+ const fullRows=Math.round(leg.h/22),limit=Math.max(1,Math.round(+state.legendLimit||3));
+ const mode=state.legendMode==='auto'?(fullRows>limit?'page':'all'):state.legendMode;
+ const itemsFor=list=>{
+  if(mode==='all')return items;
+  const keep=new Set(list.map(p=>p.head||p)),source=mode==='section'?built.rows.filter(r=>keep.has(r.head||r)):list,ic=new Set(),f=new Set();
+  for(const r of source){
+   if(r.type==='gap')f.add('gap');
+   if(r.type!=='line')continue;
+   r.items.forEach(e=>{ic.add(e.icon);f.add('dot');f.add(e.approx?'approx':'exact');});
+   r.bars.forEach(e=>{ic.add(e.icon);f.add('bar');});
+   if(r.lay.cards.some(c=>c.rows.length>1))f.add('group');
+  }
+  return [...state.legend.filter(l=>ic.has(l.id)),...Object.keys(state.markNames).filter(k=>f.has(k)).map(k=>({mark:k,name:state.markNames[k]}))];
+ };
+ const bottomFor=list=>H-34-30-legendLayout(itemsFor(list),L,R).h;
+ let y=TOP+tocH;
+ built.rows.forEach((r,i)=>{
+  const next=built.rows[i+1],added=r.type==='section'&&next?[r,next]:[r],need=added.reduce((a,x)=>a+x.h,0),current=pages[pages.length-1];
+  if(y+need>bottomFor([...current,...added])&&y>TOP){
+   pages.push([]);y=TOP;
+   if(r.type!=='section'&&r.head){const c={type:'section',label:r.head.label+' (continued)',sub:r.head.sub,h:34,top:y,head:r.head};pages[pages.length-1].push(c);y+=34;}
+  }
+  r.top=y;y+=r.h;pages[pages.length-1].push(r);r.page=pages.length;
+ });
+ $('#legendnow').textContent=`The full legend for this case is ${fullRows} row${fullRows===1?'':'s'}. `+({all:'Every page shows all of it.',page:'Each page lists only what appears on it.',section:"Each page lists what appears in its sections."})[mode];
+ const now=new Date(),printed=MON[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
+ const pct=(v,t)=>(v/t*100).toFixed(3)+'%';
+ const box=(x,y2,w,h)=>`left:${pct(x,W)};top:${pct(y2,H)};width:${pct(w,W)};height:${pct(h,H)}`;
+ const titleW=mw(m.title,true,22)+8;
+ const headerBlock=`<text x="${L}" y="58" font-size="22" font-weight="700" fill="#111">${esc(m.title)}</text><g data-act="page"><text x="${L}" y="78" font-size="12.5" fill="#333">${esc(m.subtitle)}</text><text x="${R}" y="50" text-anchor="end" font-size="12" font-weight="700" fill="#111">Case ${esc(m.caseno)}</text><text x="${R}" y="65" text-anchor="end" font-size="10.5" fill="#333">${esc(m.by)}</text><text x="${R}" y="79" text-anchor="end" font-size="10.5" fill="#333">Printed ${printed}</text></g><line x1="${L}" x2="${R}" y1="88" y2="88" stroke="#111" stroke-width="1.4"/>`;
+ const span=R-L,c1=L,c2=L+span*.38,c3=L+span*.72,c4=L+span*.92;
+ let toc='',tocLinks='';
+ if(tocH){
+  toc=`<g><text x="${c1}" y="${TOP+11}" font-size="11" font-weight="700" fill="#111">Contents</text><text x="${c2}" y="${TOP+11}" font-size="10" font-weight="700" fill="#111">Dates</text><text x="${c3}" y="${TOP+11}" font-size="10" font-weight="700" fill="#111">Each line covers</text><text x="${c4}" y="${TOP+11}" text-anchor="end" font-size="10" font-weight="700" fill="#111">Events</text><text x="${R}" y="${TOP+11}" text-anchor="end" font-size="10" font-weight="700" fill="#111">Page</text><line x1="${L}" x2="${R}" y1="${TOP+16}" y2="${TOP+16}" stroke="#111" stroke-width="0.8"/>`;
+  built.heads.forEach((h,i)=>{
+   const yy=TOP+20+i*16,t=yy+11.5;
+   toc+=`<text x="${c1}" y="${t}" font-size="10.5" fill="#111">${esc(fit(h.named?h.label:'Section '+(i+1),c2-c1-12,false,10.5))}</text><text x="${c2}" y="${t}" font-size="10.5" fill="#111">${esc(fit(h.range,c3-c2-12,false,10.5))}</text><text x="${c3}" y="${t}" font-size="10.5" fill="#111">${esc(h.res)}</text><text x="${c4}" y="${t}" text-anchor="end" font-size="10.5" fill="#111">${h.count}</text><text x="${R}" y="${t}" text-anchor="end" font-size="10.5" font-weight="700" fill="#111">${h.page}</text>`;
+   tocLinks+=`<a class="hot toc" href="#page-${h.page}" aria-label="Go to ${esc(h.label)} on page ${h.page}" style="${box(L,yy,span,16)}"></a>`;
+  });
+  toc+='</g>';
+ }
+ const legendBlockFor=rows=>{
+  const list=itemsFor(rows);
+  if(!list.length)return '';
+  const pl=legendLayout(list,L,R),ly=H-34-20-pl.h;
+  let g=`<g data-act="legend"><line x1="${L}" x2="${R}" y1="${ly}" y2="${ly}" stroke="#999" stroke-width="0.7"/><rect x="${L}" y="${ly}" width="${R-L}" height="${pl.h+8}" fill="transparent"/><text x="${L}" y="${ly+19}" font-size="10.5" font-weight="700" fill="#111">Legend</text>`;
+  pl.out.forEach(({it,x,y:yo})=>{g+=(it.mark?markSwatch(it.mark,x,ly+6+yo):iconMarkup(it,x,ly+6+yo,18))+`<text x="${x+23}" y="${ly+19+yo}" font-size="10" fill="#111">${esc(it.name)}</text>`;});
+  return g+'</g>';
+ };
+ $('#pages').innerHTML=pages.map((rows,pi)=>{
+  let s=`<div class="paper" id="page-${pi+1}" style="max-width:${W}px"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Timeline page ${pi+1}"><rect width="${W}" height="${H}" fill="#fff"/>${headerBlock}`;
+  if(pi===0)s+=toc;
+  rows.forEach(r=>{s+=drawRow(r,r.top,L,R);});
+  s+=legendBlockFor(rows)+`<text x="${L}" y="${H-26}" font-size="9.5" fill="#444">${esc(m.footer)}</text><text x="${R}" y="${H-26}" text-anchor="end" font-size="9.5" fill="#444">Page ${pi+1} of ${pages.length}</text></svg>`;
+  s+=`<a class="hot toplink" data-page="${pi+1}" href="#page-1" title="Back to contents" aria-label="Back to contents on page 1" style="${box(L,36,titleW,32)}"></a>`;
+  if(pi===0)s+=tocLinks;
+  return s+'</div>';
+ }).join('');
+ const warn=$('#warn');
+ const msgs=[];
+ if(built.missing.length)msgs.push(`${built.missing.length} event${built.missing.length>1?'s are':' is'} outside the lines shown and will not print: ${built.missing.slice(0,4).map(e=>esc(e.title)).join('; ')}${built.missing.length>4?'; and more':''}. Widen a section on the Sections tab.`);
+ if(built.tooMany)msgs.push('A section makes more than 300 lines, so it was cut short. Use a longer line length.');
+ if(built.rows.some(r=>r.h>maxH))msgs.push('One line has too many events to fit on a page. Split it into shorter lines on the Sections tab.');
+ warn.innerHTML=msgs.join('<br>');warn.style.display=msgs.length?'block':'none';
+ return {pages:pages.length,missing:built.missing.length};
+}
+
+/* ---------- side panels ---------- */
+function showTab(name){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+name));}
+function renderList(){
+ $('#evlist').innerHTML=sorted().map(e=>{const d=new Date(e.t);return `<li data-pick="${e.id}" class="${e.id===selected?'on':''}">${iconTag(legendOf(e.icon))}<div><time>${md(d)}, ${d.getFullYear()} ${e.approx?'~':''}${hm(d)}</time>${esc(e.title)}</div></li>`;}).join('');
+}
+function renderEditor(){
+ const e=state.events.find(x=>x.id===selected),box=$('#editor');
+ if(!e){box.innerHTML='<p class="hint">Click an event on the chart to edit it. Drag its box to move the label. The time stays put, and nearby lines make room.</p>';return;}
+ box.innerHTML=`<div class="card">
+  <label class="f">What happened<textarea id="e-title" rows="2">${esc(e.title)}</textarea></label>
+  <div class="row"><label class="f">Date and time<input id="e-t" type="datetime-local" value="${e.t}"></label></div>
+  <label class="check"><input id="e-approx" type="checkbox" ${e.approx?'checked':''}> Time is approximate</label>
+  <label class="f">Ends (optional, draws a bar)<input id="e-end" type="datetime-local" value="${e.end}"></label>
+  <div class="hint" style="margin-bottom:4px">Icon</div>
+  <div class="icongrid">${state.legend.map(l=>`<button title="${esc(l.name)}" aria-label="${esc(l.name)}" data-seticon="${l.id}" class="${l.id===e.icon?'on':''}">${iconTag(l)}</button>`).join('')}</div>
+  <label class="f">Location name (optional)<input id="e-place" value="${esc(e.place||'')}"></label>
+  <label class="f">Address (optional)<input id="e-address" placeholder="Street, city, state" value="${esc(e.address||'')}"></label>
+  <label class="f">Latitude, longitude (optional, used instead of the address)<input id="e-coords" placeholder="43.8000, -87.1000" value="${esc(e.coords||'')}"><span class="coordmsg" id="e-coordmsg"></span></label>
+  <label class="f">Notes (not printed on the chart)<textarea id="e-notes" rows="2">${esc(e.notes)}</textarea></label>
+  <div class="row"><button id="e-reset" class="small">Reset label position</button><button id="e-del" class="small">Delete event</button></div>
+ </div>`;
+ const coordMsg=()=>{const v=(e.coords||'').trim(),ok=parseCoords(v),m=$('#e-coordmsg');m.textContent=!v?'':ok?'Reads as '+ok.lat.toFixed(5)+', '+ok.lng.toFixed(5):'Could not read this. Paste it as latitude, longitude.';m.style.color=v&&!ok?'#a32020':'';};
+ const bind=(id,prop,get)=>{$(id).addEventListener('input',ev=>{e[prop]=get?get(ev.target):ev.target.value;renderChart();renderList();renderMap();coordMsg();});};
+ bind('#e-title','title');bind('#e-t','t');bind('#e-end','end');bind('#e-notes','notes');bind('#e-approx','approx',t=>t.checked);bind('#e-place','place');bind('#e-address','address');bind('#e-coords','coords');coordMsg();
+ $('#e-reset').onclick=()=>{e.dx=e.dy=null;renderChart();};
+ $('#e-del').onclick=()=>{state.events=state.events.filter(x=>x!==e);selected=null;refresh();};
+}
+function select(id){selected=id;showTab('events');refresh();}
+function secSummary(s){
+ const ok=validSection(s),range=ok?rangeText(new Date(s.start),new Date(s.end)):'Check the dates';
+ return {name:s.name||range,detail:(s.name?range+', ':'')+'each line '+resText(s)};
+}
+function renderSections(){
+ const list=state.sections.filter(s=>s.include!==false&&validSection(s));
+ $('#secnote').hidden=!list.some((s,i)=>i&&new Date(s.start)<new Date(list[i-1].start));
+ $('#sections').innerHTML=state.sections.map((s,i)=>{const sum=secSummary(s);return `<div class="card sec${s.include===false?' off':''}" data-secidx="${i}">
+  <div class="sechead">
+   <button class="grip" data-grip="${i}" title="Drag to move this section" aria-label="Drag to move this section">&#8942;&#8942;</button>
+   <input class="incl" type="checkbox" data-include="${i}" ${s.include===false?'':'checked'} title="Include on the chart" aria-label="Include this section on the chart">
+   <button class="sectoggle" data-toggle="${i}" aria-expanded="${!!s.open}"><span aria-hidden="true">${s.open?'&#9662;':'&#9656;'}</span><span class="t"><b data-sumname="${i}">${esc(sum.name)}</b><small data-sumdetail="${i}">${esc(sum.detail)}</small></span></button>
+   <button class="small move" data-move="${i},-1" ${i?'':'disabled'} aria-label="Move section up">&#8593;</button>
+   <button class="small move" data-move="${i},1" ${i<state.sections.length-1?'':'disabled'} aria-label="Move section down">&#8595;</button>
+  </div>
+  <div class="secbody" ${s.open?'':'hidden'}>
+  <label class="f">Section heading (optional)<input data-sec="${i}" data-k="name" value="${esc(s.name)}"></label>
+  <label class="f">From<input type="datetime-local" data-sec="${i}" data-k="start" value="${s.start}"></label>
+  <label class="f">To<input type="datetime-local" data-sec="${i}" data-k="end" value="${s.end}"></label>
+  <div class="row"><label class="f">Each line covers<input type="number" min="1" data-sec="${i}" data-k="n" value="${s.n}"></label>
+  <label class="f">&nbsp;<select data-sec="${i}" data-k="unit">${['minute','hour','day','week','month','year'].map(u=>`<option value="${u}" ${u===s.unit?'selected':''}>${u}${+s.n>1?'s':''}</option>`).join('')}</select></label></div>
+  ${s.role?`<label class="check"><input type="checkbox" data-auto="${i}" ${autoOn(s)?'checked':''}> ${s.role==='incident'?'Set line length automatically':'Set dates and line length automatically'}</label>`:''}
+  <button class="small" data-delsec="${i}">Remove section</button></div></div>`;}).join('');
+}
+function moveSection(from,to){
+ const list=state.sections;
+ if(to<0||to>=list.length||from===to)return;
+ handEdited();
+ const [s]=list.splice(from,1);list.splice(to,0,s);refresh();
+}
+function renderLegend(){
+ const count=id=>state.events.filter(e=>e.icon===id).length;
+ $('#legendrows').innerHTML=state.legend.map((l,i)=>`<div class="legrow">${iconTag(l)}<input aria-label="Legend name" data-leg="${i}" value="${esc(l.name)}"><span class="n" title="Events using this icon">${count(l.id)}</span><button class="small" data-delleg="${i}" ${count(l.id)?'disabled':''} aria-label="Remove ${esc(l.name)}">Remove</button></div>`).join('');
+ $('#markrows').innerHTML=Object.keys(state.markNames).map(k=>`<div class="legrow"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true">${markSwatch(k,0,0)}</svg><input aria-label="Name for this chart mark" data-mark="${k}" value="${esc(state.markNames[k])}"></div>`).join('');
+ renderLibrary();
+}
+/* Each icon can be added once. Icons already in the legend are highlighted. */
+function renderLibrary(){
+ const q=$('#libsearch').value.trim().toLowerCase(),inLegend=new Set(state.legend.map(l=>l.icon));
+ const html=ICON_GROUPS.map(([group,keys])=>{
+  const shown=keys.filter(k=>!q||LIBRARY_NAMES[k].toLowerCase().includes(q)||group.toLowerCase().includes(q));
+  if(!shown.length)return '';
+  return `<h4>${esc(group)}</h4><div class="libgrid">${shown.map(k=>{const on=inLegend.has(k),name=LIBRARY_NAMES[k];return `<button class="libtile" data-lib="${k}" ${on?'disabled':''} title="${on?'Already in the legend':'Add to the legend'}" aria-label="${on?name+', already in the legend':'Add '+name}">${iconTag({icon:k})}<span>${esc(name)}</span></button>`;}).join('')}</div>`;
+ }).join('');
+ $('#library').innerHTML=html||'<p class="hint">No icons match. Try another word, or add your own image below.</p>';
+}
+$('#libsearch').addEventListener('input',renderLibrary);
+/* ---------- map export: only produces text and files, never opens or contacts anything ---------- */
+function parseCoords(v){
+ const text=String(v||''),m=text.match(/(-?\d{1,2}(?:\.\d+)?)\s*[,%2C ]+\s*(-?\d{1,3}(?:\.\d+)?)/i);
+ if(!m)return null;
+ const lat=+m[1],lng=+m[2];
+ return Math.abs(lat)<=90&&Math.abs(lng)<=180?{lat,lng}:null;
+}
+function mapStops(){
+ const out=[];
+ for(const e of sorted()){
+  const c=parseCoords(e.coords),address=String(e.address||'').trim();
+  if(!c&&!address)continue;
+  const key=c?c.lat+','+c.lng:address.toLowerCase().replace(/\s+/g,' ');
+  const last=out[out.length-1];
+  if(last&&last.key===key)last.events.push(e);
+  else out.push({n:out.length+1,key,hasCoords:!!c,lat:c?c.lat:null,lng:c?c.lng:null,address,events:[e]});
+ }
+ return out;
+}
+const ll=s=>s.hasCoords?s.lat+','+s.lng:encodeURIComponent(s.address);
+function routeLinks(stops){
+ if(!stops.length)return [];
+ if(stops.length===1)return ['https://www.google.com/maps/search/?api=1&query='+ll(stops[0])];
+ const links=[],MAX=11;
+ for(let i=0;i<stops.length-1;i+=MAX-1){
+  const part=stops.slice(i,i+MAX),mid=part.slice(1,-1).map(ll).join('%7C');
+  links.push('https://www.google.com/maps/dir/?api=1&origin='+ll(part[0])+'&destination='+ll(part[part.length-1])+(mid?'&waypoints='+mid:''));
+ }
+ return links;
+}
+function isoLocal(t){const d=new Date(t),o=-d.getTimezoneOffset(),a=Math.abs(o);return local(d)+':00'+(o<0?'-':'+')+pad(Math.floor(a/60))+':'+pad(a%60);}
+const stopText=s=>s.events.map(e=>e.title).join('; ');
+function buildKML(stops,times,desc){
+ const x=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+ const pts=stops.filter(s=>s.hasCoords);
+ const marks=pts.map(s=>`<Placemark><name>${s.n}</name>${desc?`<description>${x(stopText(s))}</description>`:''}${times?`<TimeStamp><when>${isoLocal(s.events[0].t)}</when></TimeStamp>`:''}<Point><coordinates>${s.lng},${s.lat},0</coordinates></Point></Placemark>`).join('\n');
+ const path=pts.length>1?`\n<Placemark><name>Sequence</name><LineString><tessellate>1</tessellate><coordinates>${pts.map(s=>s.lng+','+s.lat+',0').join(' ')}</coordinates></LineString></Placemark>`:'';
+ return `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Timeline stops</name>\n${marks}${path}\n</Document></kml>\n`;
+}
+function buildCSV(stops,times,desc){
+ const q=v=>{let s=String(v);if(/^[=+\-@\t\r]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';};
+ const head=['Stop','Location','Latitude','Longitude'].concat(times?['Time']:[],desc?['Description']:[]).join(',');
+ return [head].concat(stops.map(s=>[s.n,s.hasCoords?'"'+s.lat+', '+s.lng+'"':q(s.address),s.hasCoords?s.lat:'',s.hasCoords?s.lng:''].concat(times?[q(s.events[0].t.replace('T',' '))]:[],desc?[q(stopText(s))]:[]).join(','))).join('\r\n')+'\r\n';
+}
+function saveText(name,text,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function renderMap(){
+ const stops=mapStops(),links=routeLinks(stops);
+ const addr=stops.filter(s=>!s.hasCoords).length,pts=stops.length-addr,an=$('#m-addr');
+ an.style.display=addr?'block':'none';
+ an.textContent=addr?`This export is not anonymous. ${addr} of ${stops.length} stops use a real street address, which appears in the route link and CSV.`:'';
+ $('#m-kml').disabled=!pts;
+ $('#m-kmlnote').textContent=addr?(pts?`KML leaves out ${addr} address-only stop${addr>1?'s':''}. Use the CSV for every stop.`:'KML needs coordinates. Use the CSV for addresses.'):'';
+ $('#m-link').value=links.join('\n\n')||'Add a location to at least one event first.';
+ $('#m-copied').textContent=links.length>1?'Long route, split into '+links.length+' links.':'';
+ $('#m-stops').innerHTML=stops.map(s=>{const f=s.events[0],d=new Date(f.t);return `<li>${esc(f.place||s.address||'Unnamed location')}<small>${md(d)} ${f.approx?'~':''}${hm(d)}${s.events.length>1?', and '+(s.events.length-1)+' more here':''}</small></li>`;}).join('');
+}
+$('#m-copy').onclick=async()=>{const t=$('#m-link');let ok=false;try{await navigator.clipboard.writeText(t.value);ok=true;}catch(_){t.select();ok=document.execCommand('copy');}$('#m-copied').textContent=ok?'Copied.':'Select the text and copy it.';};
+$('#m-kml').onclick=()=>saveText('timeline-stops.kml',buildKML(mapStops(),$('#m-times').checked,$('#m-desc').checked),'application/vnd.google-earth.kml+xml');
+$('#m-csv').onclick=()=>saveText('timeline-stops.csv',buildCSV(mapStops(),$('#m-times').checked,$('#m-desc').checked),'text/csv');
+function refresh(){renderChart();renderList();renderEditor();renderSections();renderLegend();renderMap();}
+
+/* ---------- interaction ---------- */
+document.querySelector('.tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b)showTab(b.dataset.tab);});
+$('#evlist').addEventListener('click',e=>{const li=e.target.closest('[data-pick]');if(li)select(li.dataset.pick);});
+document.addEventListener('click',e=>{
+ const seticon=e.target.closest('[data-seticon]');
+ if(seticon){state.events.find(x=>x.id===selected).icon=seticon.dataset.seticon;refresh();return;}
+ const tog=e.target.closest('[data-toggle]');if(tog){const s=state.sections[+tog.dataset.toggle];s.open=!s.open;renderSections();return;}
+ const mv=e.target.closest('[data-move]');if(mv){const [i,d]=mv.dataset.move.split(',').map(Number);moveSection(i,i+d);return;}
+ const all=e.target.closest('[data-allsec]');if(all){state.sections.forEach(s=>{s.open=all.dataset.allsec==='open';});renderSections();return;}
+ const ds=e.target.closest('[data-delsec]');if(ds){handEdited();state.sections.splice(+ds.dataset.delsec,1);refresh();return;}
+ const dl=e.target.closest('[data-delleg]');if(dl){state.legend.splice(+dl.dataset.delleg,1);refresh();return;}
+ const lib=e.target.closest('[data-lib]');
+ if(lib){const k=lib.dataset.lib;state.legend.push({id:k+'-'+(uid++),icon:k,name:LIBRARY_NAMES[k]});refresh();return;}
+ const preset=e.target.closest('[data-preset]');if(preset){applyPreset(preset.dataset.preset);}
+});
+/* ---------- standard sections built around the incident ---------- */
+const ROLE_NAMES={before:'Before the Incident',incident:'Incident',response:'Response',investigation:'Investigation'};
+const autoOn=s=>s.role==='incident'?!!s.autoLine:!!(s.autoLine&&s.autoDates);
+function standardSections(date,startT,endT,include){
+ const rules=readRules(),start=date+'T'+(startT||'00:00');
+ let end;
+ if(endT){let e=new Date(date+'T'+endT);if(e<=new Date(start))e=addUnit(e,1,'day');end=local(e);}
+ else if(startT)end=local(new Date(+new Date(start)+rules.incidentLen));
+ else end=local(addUnit(new Date(start),1,'day'));
+ return Object.keys(ROLE_NAMES).map(role=>({role,name:ROLE_NAMES[role],include:include[role]!==false,autoDates:role!=='incident',autoLine:true,start,end,n:1,unit:'day',open:role==='incident'}));
+}
+/* The longest allowed line that keeps every line within the events-per-line limit. */
+function autoLine(s,times,rules){
+ const a=+new Date(s.start),b=+new Date(s.end),inside=times.filter(t=>t>=a&&t<b);
+ let options=rules.allowed.filter(([n,u])=>nominal(n,u)<=(b-a)*rules.spanFactor).reverse();
+ if(!options.length)options=rules.allowed.slice(0,1);
+ let fallback=options[0],fewest=Infinity;
+ for(const [n,u] of options){
+  let t=new Date(a),i=0,lines=0,worst=0;
+  while(+t<b&&lines<=300){const next=addUnit(t,n,u);let c=0;while(i<inside.length&&inside[i]<+next){c++;i++;}worst=Math.max(worst,c);t=next;lines++;}
+  if(lines>300)continue;
+  if(worst<=rules.maxPerLine)return [n,u];
+  if(worst<fewest){fewest=worst;fallback=[n,u];}
+ }
+ return fallback;
+}
+/* Before ends where the Incident starts. Response follows it, then Investigation, so turning Response off leaves no hole. */
+function updateAutoSections(){
+ const secs=state.sections,by=r=>secs.find(s=>s.role===r),inc=by('incident');
+ if(!inc||!validSection(inc))return;
+ const rules=readRules(),list=sorted(),times=list.map(e=>+new Date(e.t)),latest=Math.max(0,...times,...list.map(e=>e.end?+new Date(e.end):0));
+ const incS=+new Date(inc.start),incE=+new Date(inc.end);
+ let changed=false;
+ const place=(s,a,b)=>{const x=local(new Date(a)),y=local(new Date(b));if(s.start!==x||s.end!==y){s.start=x;s.end=y;changed=true;}};
+ const before=by('before');
+ if(before&&before.autoDates){let a=+floorTo(new Date(incS-rules.beforeLen),1,'day');if(times.length&&times[0]<a)a=+floorTo(new Date(times[0]),1,'day');place(before,a,incS);}
+ let cursor=incE;
+ const resp=by('response');
+ if(resp&&resp.include!==false){if(resp.autoDates)place(resp,incE,incE+rules.responseLen);cursor=+new Date(resp.end)||incE;}
+ const inv=by('investigation');
+ if(inv&&inv.autoDates)place(inv,cursor,Math.max(+ceilTo(new Date(cursor+rules.investigationLen),1,'day'),latest?+ceilTo(new Date(latest+6e4),1,'day'):0));
+ secs.forEach(s=>{if(s.role&&s.autoLine&&validSection(s)){const [n,u]=autoLine(s,times,rules);if(+s.n!==n||s.unit!==u){s.n=n;s.unit=u;changed=true;}}});
+ if(changed)syncSectionFields();
+}
+/* Updates the open panel without rebuilding it, so whatever is being typed keeps its place. */
+function syncSectionFields(){
+ state.sections.forEach((s,i)=>{
+  const name=document.querySelector(`[data-sumname="${i}"]`);if(!name)return;
+  const sum=secSummary(s);name.textContent=sum.name;document.querySelector(`[data-sumdetail="${i}"]`).textContent=sum.detail;
+  document.querySelectorAll(`[data-sec="${i}"]`).forEach(el=>{if(el!==document.activeElement&&el.value!==String(s[el.dataset.k]))el.value=s[el.dataset.k];});
+ });
+}
+let dialogMode='case';
+function openCaseDialog(mode){
+ dialogMode=mode;
+ const isCase=mode==='case',inc=state.sections.find(s=>s.role==='incident'),first=sorted()[0];
+ $('#nctitle').textContent=isCase?'New case':'Standard sections';
+ $('#nccasewrap').hidden=!isCase;
+ $('#ncsubmit').textContent=isCase?'Create case':'Use these sections';
+ $('#nccase').value='';
+ const from=isCase?'':inc?inc.start:first?first.t:'';
+ $('#ncdate').value=from.slice(0,10);
+ const time=from.slice(11,16);$('#ncstart').value=time&&time!=='00:00'?time:'';
+ $('#ncend').value=!isCase&&inc&&time!=='00:00'?inc.end.slice(11,16):'';
+ document.querySelectorAll('[data-ncrole]').forEach(c=>{const r=!isCase&&state.sections.find(s=>s.role===c.dataset.ncrole);c.checked=r?r.include!==false:true;});
+ $('#newcase').showModal();
+}
+$('#newcasebtn').onclick=()=>openCaseDialog('case');
+$('#standardbtn').onclick=()=>openCaseDialog('sections');
+$('#nccancel').onclick=()=>$('#newcase').close();
+$('#ncform').addEventListener('submit',e=>{
+ e.preventDefault();
+ const include={};document.querySelectorAll('[data-ncrole]').forEach(c=>{include[c.dataset.ncrole]=c.checked;});
+ const next=standardSections($('#ncdate').value,$('#ncstart').value,$('#ncend').value,include);
+ if(dialogMode==='case'){
+  const m=state.meta;
+  state.events=[];selected=null;
+  m.caseno=$('#nccase').value.trim()||'New case';m.subtitle='';m.footer='';
+  ['caseno','subtitle','footer'].forEach(k=>{$('#f-'+k).value=m[k];});
+  $('#caselabel').textContent=m.caseno;
+  $('#savestatus').textContent='The real app saves to Cases/'+m.caseno+'.xlsx in OneDrive';
+  $('#suggestnote').hidden=true;
+ }else{
+  sectionsBeforeSuggest=state.sections;
+  $('#suggesttext').textContent='Using the standard sections. Turn any of them off with its checkbox.';
+  $('#suggestnote').hidden=false;
+ }
+ suggestActive=false;ruleStatus();
+ state.sections=next;
+ $('#newcase').close();
+ showTab(dialogMode==='case'?'events':'lines');
+ refresh();
+});
+
+/* ---------- suggest sections from how events bunch up ---------- */
+const HOUR=36e5;
+const nominal=(n,u)=>n*{minute:6e4,hour:HOUR,day:24*HOUR,week:168*HOUR,month:720*HOUR,year:8760*HOUR}[u];
+/* Reads the panel without ever changing what is being typed. Blank or invalid values use the default. */
+function readRules(){
+ const s=state.suggest,D=SUGGEST_DEFAULTS,pos=(v,d)=>{const n=parseFloat(v);return n>0?n:d;},whole=(v,d)=>Math.max(1,Math.round(pos(v,d)));
+ const burst=nominal(pos(s.burst.v,D.burst.v),s.burst.u);
+ const allowed=LINE_CHOICES.filter(([n,u])=>s.lines.includes(lineKey(n,u)));
+ return {burst,active:Math.max(burst,nominal(pos(s.active.v,D.active.v),s.active.u)),minGroup:whole(s.minGroup,D.minGroup),maxPerLine:whole(s.maxPerLine,D.maxPerLine),maxSections:whole(s.maxSections,D.maxSections),spanFactor:pos(s.spanPct,D.spanPct)/100,floors:s.floors.map((f,i)=>nominal(pos(f.v,D.floors[i].v),f.u)),allowed:allowed.length?allowed:LINE_CHOICES,beforeLen:nominal(pos(s.beforeLen.v,D.beforeLen.v),s.beforeLen.u),incidentLen:nominal(pos(s.incidentLen.v,D.incidentLen.v),s.incidentLen.u),responseLen:nominal(pos(s.responseLen.v,D.responseLen.v),s.responseLen.u),investigationLen:nominal(pos(s.investigationLen.v,D.investigationLen.v),s.investigationLen.u)};
+}
+function floorTo(d,n,u){
+ const Y=d.getFullYear(),M=d.getMonth(),D=d.getDate();
+ if(u==='minute')return new Date(Y,M,D,d.getHours(),Math.floor(d.getMinutes()/n)*n);
+ if(u==='hour')return new Date(Y,M,D,Math.floor(d.getHours()/n)*n);
+ if(u==='day')return new Date(Y,M,D);
+ if(u==='week')return new Date(Y,M,D-(d.getDay()+6)%7);
+ if(u==='month')return new Date(Y,M,1);
+ return new Date(Y,0,1);
+}
+function ceilTo(d,n,u){const f=floorTo(d,n,u);return +f===+d?f:addUnit(f,n,u);}
+/* Picks the longest line that still keeps every line to a readable number of events. */
+function chooseLine(times,tier,latest,rules){
+ const span=Math.max(latest||0,times[times.length-1])-times[0],limit=Math.max(span*rules.spanFactor,rules.floors[tier]);
+ let options=rules.allowed.filter(([n,u])=>nominal(n,u)<=limit).reverse();
+ if(!options.length)options=rules.allowed.slice(0,1);
+ let fallback=options[0]||[1,'hour'],fewest=Infinity;
+ for(const [n,u] of options){
+  let t=floorTo(new Date(times[0]),n,u),i=0,lines=0,worst=0;
+  while(i<times.length&&lines<=300){const next=addUnit(t,n,u);let c=0;while(i<times.length&&times[i]<+next){c++;i++;}worst=Math.max(worst,c);t=next;lines++;}
+  if(lines>300)continue;
+  if(worst<=rules.maxPerLine)return [n,u];
+  if(worst<fewest){fewest=worst;fallback=[n,u];}
+ }
+ return fallback;
+}
+function suggestSections(){
+ const rules=readRules(),list=sorted(),ev=list.map(e=>+new Date(e.t));
+ if(!ev.length)return [];
+ /* Tier 0: a burst. Tier 1: active. Tier 2: quiet, meaning farther apart than either limit. */
+ const tierOf=i=>{const g=Math.min(i?ev[i]-ev[i-1]:Infinity,i<ev.length-1?ev[i+1]-ev[i]:Infinity);return g<=rules.burst?0:g<=rules.active?1:2;};
+ const runs=[];
+ ev.forEach((t,i)=>{const k=tierOf(i),r=runs[runs.length-1];if(r&&r.tier===k)r.times.push(t);else runs.push({tier:k,times:[t]});});
+ const mergeSame=()=>{for(let i=runs.length-1;i>0;i--)if(runs[i].tier===runs[i-1].tier){runs[i-1].times.push(...runs[i].times);runs.splice(i,1);}};
+ /* A burst or active section needs enough events. Smaller groups join a calmer neighbor. */
+ for(let changed=true;changed;){
+  changed=false;
+  for(let i=0;i<runs.length;i++){
+   const r=runs[i],calmer=[runs[i-1],runs[i+1]].filter(x=>x&&x.tier>r.tier);
+   if(r.times.length<rules.minGroup&&calmer.length){r.tier=calmer.reduce((a,b)=>b.tier>a.tier?b:a).tier;changed=true;}
+  }
+  mergeSame();
+ }
+ /* Keep the list manageable by combining the neighboring sections that hold the fewest events. */
+ while(runs.length>rules.maxSections){
+  let at=0,least=Infinity;
+  for(let i=0;i<runs.length-1;i++){const c=runs[i].times.length+runs[i+1].times.length;if(c<least){least=c;at=i;}}
+  runs[at].times.push(...runs[at+1].times);runs[at].tier=Math.max(runs[at].tier,runs[at+1].tier);runs.splice(at+1,1);
+ }
+ const latestEnd=Math.max(ev[ev.length-1],...list.map(e=>e.end?+new Date(e.end):0));
+ runs.forEach((r,i)=>{r.first=r.times[0];r.last=r.times[r.times.length-1];[r.n,r.unit]=chooseLine(r.times,r.tier,i===runs.length-1?latestEnd:0,rules);});
+ const bounds=[floorTo(new Date(ev[0]),runs[0].n,runs[0].unit)];
+ for(let i=0;i<runs.length-1;i++){
+  const a=runs[i],b=runs[i+1];
+  let edge=nominal(a.n,a.unit)<=nominal(b.n,b.unit)?ceilTo(new Date(a.last+6e4),a.n,a.unit):floorTo(new Date(b.first),b.n,b.unit);
+  if(+edge<=a.last||+edge>b.first)edge=new Date(b.first);
+  bounds.push(edge);
+ }
+ const last=runs[runs.length-1];
+ bounds.push(ceilTo(new Date(latestEnd+6e4),last.n,last.unit));
+ return runs.map((r,i)=>({name:'',start:local(bounds[i]),end:local(bounds[i+1]),n:r.n,unit:r.unit}));
+}
+let sectionsBeforeSuggest=null,suggestActive=false;
+function ruleStatus(){
+ $('#rulestatus').textContent=suggestActive?'Changes here update the sections right away.':'Press Suggest from events to use the grouping rules. Standard sections update right away.';
+}
+/* Once sections are edited by hand, rule changes stop overwriting them. */
+function handEdited(){suggestActive=false;ruleStatus();}
+function applySuggestion(){
+ const next=suggestSections();
+ if(!next.length)return;
+ if(!suggestActive)sectionsBeforeSuggest=state.sections;
+ state.sections=next;
+ suggestActive=true;
+ ruleStatus();
+ refresh();
+ $('#suggesttext').textContent=`Made ${next.length} section${next.length>1?'s':''} from the event times. Tight bursts of events get short lines, and quieter stretches get longer ones. Rename, adjust, or reorder them as needed.`;
+ $('#suggestnote').hidden=false;
+}
+$('#suggest').onclick=applySuggestion;
+$('#undosuggest').onclick=()=>{if(sectionsBeforeSuggest){state.sections=sectionsBeforeSuggest;sectionsBeforeSuggest=null;}$('#suggestnote').hidden=true;handEdited();refresh();};
+function renderRules(){
+ const s=state.suggest,units=(path,u)=>`<select data-rule="${path}" aria-label="Unit">${[['minute','minutes'],['hour','hours'],['day','days']].map(([v,l])=>`<option value="${v}" ${v===u?'selected':''}>${l}</option>`).join('')}</select>`;
+ const timeRow=(label,path,o)=>`<div class="rr"><span>${label}</span><input type="number" min="0" step="any" aria-label="${label}" data-rule="${path}.v" value="${o.v}">${units(path+'.u',o.u)}</div>`;
+ const numRow=(label,path,v,unit)=>`<div class="rr"><span>${label}</span><input type="number" min="1" step="1" aria-label="${label}" data-rule="${path}" value="${v}"><span class="u">${unit}</span></div>`;
+ $('#rules').innerHTML=`<h4>How close events must be</h4>
+  ${timeRow('Burst: a neighbor within','burst',s.burst)}
+  ${timeRow('Active: a neighbor within','active',s.active)}
+  <p class="hint">Events farther apart than both count as quiet.</p>
+  <h4>How sections form</h4>
+  ${numRow('Smallest burst or active group','minGroup',s.minGroup,'events')}
+  ${numRow('Most sections','maxSections',s.maxSections,'sections')}
+  <h4>How long each line is</h4>
+  ${numRow('Most events on one line','maxPerLine',s.maxPerLine,'events')}
+  ${numRow('Longest line, compared to its section','spanPct',s.spanPct,'percent')}
+  <p class="hint">In very short sections, lines can still be this long:</p>
+  ${timeRow('Burst section','floors.0',s.floors[0])}
+  ${timeRow('Active section','floors.1',s.floors[1])}
+  ${timeRow('Quiet section','floors.2',s.floors[2])}
+  <h4>Standard sections</h4>
+  ${timeRow('Before the Incident covers','beforeLen',s.beforeLen)}
+  ${timeRow('Incident with no end time','incidentLen',s.incidentLen)}
+  ${timeRow('Response covers','responseLen',s.responseLen)}
+  ${timeRow('Investigation covers at least','investigationLen',s.investigationLen)}
+  <h4>Line lengths it may use</h4>
+  <div class="linechecks">${LINE_CHOICES.map(([n,u])=>{const k=lineKey(n,u);return `<label><input type="checkbox" data-line="${k}" ${s.lines.includes(k)?'checked':''}> ${n} ${u}${n>1?'s':''}</label>`;}).join('')}</div>`;
+}
+function ruleChanged(){if(suggestActive)applySuggestion();else renderChart();}
+$('#rules').addEventListener('input',e=>{
+ const t=e.target,s=state.suggest;
+ if(t.dataset.line){const k=t.dataset.line;s.lines=t.checked?[...s.lines,k]:s.lines.filter(x=>x!==k);ruleChanged();return;}
+ if(!t.dataset.rule)return;
+ const parts=t.dataset.rule.split('.'),key=parts.pop();
+ parts.reduce((o,p)=>o[p],s)[key]=t.value;
+ ruleChanged();
+});
+$('#rulereset').onclick=()=>{state.suggest=copyDefaults();renderRules();ruleChanged();};
+renderRules();ruleStatus();
+function applyPreset(p){
+ $('#suggestnote').hidden=true;handEdited();
+ if(p==='zoom'){state.sections=zoomSections();refresh();return;}
+ const ev=sorted();if(!ev.length)return;
+ const a=new Date(ev[0].t),b=new Date(ev[ev.length-1].t);let start,end;
+ if(p==='day'){start=new Date(a.getFullYear(),a.getMonth(),a.getDate());end=new Date(b.getFullYear(),b.getMonth(),b.getDate()+1);}
+ else if(p==='week'){const dow=(a.getDay()+6)%7;start=new Date(a.getFullYear(),a.getMonth(),a.getDate()-dow);end=new Date(b.getFullYear(),b.getMonth(),b.getDate()+7);}
+ else{start=new Date(a.getFullYear(),a.getMonth(),1);end=new Date(b.getFullYear(),b.getMonth()+1,1);}
+ state.sections=[{name:'',start:local(start),end:local(end),n:1,unit:p}];refresh();
+}
+$('#sections').addEventListener('input',e=>{
+ const t=e.target;
+ if(t.dataset.include!==undefined){handEdited();state.sections[+t.dataset.include].include=t.checked;t.closest('.sec').classList.toggle('off',!t.checked);renderChart();return;}
+ if(t.dataset.auto!==undefined){handEdited();const a=state.sections[+t.dataset.auto];a.autoLine=t.checked;if(a.role!=='incident')a.autoDates=t.checked;renderChart();return;}
+ if(t.dataset.sec===undefined)return;
+ handEdited();
+ const i=+t.dataset.sec,s=state.sections[i],k=t.dataset.k,length=+new Date(s.end)-+new Date(s.start);
+ s[k]=t.value;
+ if(s.role){
+  /* Moving the Incident's start keeps its length, so its end moves too. */
+  if(s.role==='incident'&&k==='start'&&length>0&&!isNaN(+new Date(s.start)))s.end=local(new Date(+new Date(s.start)+length));
+  if((k==='start'||k==='end')&&s.role!=='incident')s.autoDates=false;
+  if(k==='n'||k==='unit')s.autoLine=false;
+  const box=document.querySelector(`[data-auto="${i}"]`);if(box)box.checked=autoOn(s);
+ }
+ renderChart();
+ syncSectionFields();
+ const sum=secSummary(s);document.querySelector(`[data-sumname="${i}"]`).textContent=sum.name;document.querySelector(`[data-sumdetail="${i}"]`).textContent=sum.detail;
+});
+/* Drag the dots to reorder sections. */
+let secDrag=null;
+function clearDropMarks(){document.querySelectorAll('.sec').forEach(c=>c.classList.remove('drop-before','drop-after'));}
+$('#sections').addEventListener('pointerdown',e=>{
+ const g=e.target.closest('[data-grip]');if(!g)return;
+ secDrag={from:+g.dataset.grip,to:+g.dataset.grip,moved:false};
+ g.closest('.sec').classList.add('dragging');e.preventDefault();
+});
+window.addEventListener('pointermove',e=>{
+ if(!secDrag)return;
+ const panel=$('#p-lines'),p=panel.getBoundingClientRect();
+ if(e.clientY<p.top+30)panel.scrollTop-=12;else if(e.clientY>p.bottom-30)panel.scrollTop+=12;
+ const cards=[...document.querySelectorAll('.sec')];
+ let at=cards.length;
+ for(let i=0;i<cards.length;i++){const b=cards[i].getBoundingClientRect();if(e.clientY<b.top+b.height/2){at=i;break;}}
+ secDrag.to=at;secDrag.moved=true;clearDropMarks();
+ if(at<cards.length)cards[at].classList.add('drop-before');else cards[cards.length-1].classList.add('drop-after');
+});
+window.addEventListener('pointerup',()=>{
+ if(!secDrag)return;
+ const d=secDrag;secDrag=null;clearDropMarks();
+ document.querySelectorAll('.sec.dragging').forEach(c=>c.classList.remove('dragging'));
+ if(d.moved)moveSection(d.from,d.to>d.from?d.to-1:d.to);
+});
+window.addEventListener('pointercancel',()=>{if(secDrag){secDrag=null;clearDropMarks();renderSections();}});
+$('#legendrows').addEventListener('input',e=>{const t=e.target;if(t.dataset.leg===undefined)return;state.legend[+t.dataset.leg].name=t.value;renderChart();});
+$('#legendmode').value=state.legendMode;
+$('#legendlimit').value=state.legendLimit;
+$('#legendmode').addEventListener('change',e=>{state.legendMode=e.target.value;$('#legendrowsrow').hidden=e.target.value!=='auto';renderChart();});
+$('#legendlimit').addEventListener('input',e=>{state.legendLimit=e.target.value;renderChart();});
+$('#markrows').addEventListener('input',e=>{const t=e.target;if(t.dataset.mark===undefined)return;state.markNames[t.dataset.mark]=t.value;renderChart();});
+$('#hideEmpty').addEventListener('change',e=>{state.hideEmpty=e.target.checked;renderChart();});
+$('#addsec').onclick=()=>{handEdited();const last=state.sections[state.sections.length-1];const st=last?last.end:'2026-03-01T00:00';state.sections.push({name:'',start:st,end:local(addUnit(new Date(st),7,'day')),n:1,unit:'day',open:true});refresh();$('#sections').lastElementChild.scrollIntoView({block:'nearest'});};
+$('#add').onclick=()=>{const prev=state.events.find(x=>x.id===selected)||sorted().slice(-1)[0];const inc=state.sections.find(x=>x.role==='incident');const d=new Date(prev?new Date(prev.t).getTime()+6e4*5:inc?inc.start:Date.now());const e={id:'e'+(uid++),t:local(d),icon:state.legend[0].id,title:'New event',approx:false,end:'',notes:'',dx:null,dy:null};state.events.push(e);select(e.id);const f=$('#e-title');f.focus();f.select();};
+$('#print').onclick=()=>{selected=null;refresh();window.print();};
+$('#upload').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.legend.push({id:'u'+(uid++),img:r.result,name:f.name.replace(/\.[^.]+$/,'')});refresh();};r.readAsDataURL(f);e.target.value='';});
+[['title','#f-title'],['subtitle','#f-subtitle'],['caseno','#f-caseno'],['by','#f-by'],['footer','#f-footer'],['paper','#f-paper']].forEach(([k,id])=>{const el=$(id);el.value=state.meta[k];el.addEventListener('input',()=>{state.meta[k]=el.value;renderChart();});});
+$('#png').onclick=()=>{
+ selected=null;refresh();
+ const svg=document.querySelector('.paper svg').cloneNode(true),vb=svg.viewBox.baseVal;
+ svg.setAttribute('width',vb.width);svg.setAttribute('height',vb.height);
+ const img=new Image(),scale=3;
+ img.onload=()=>{const c=document.createElement('canvas');c.width=vb.width*scale;c.height=vb.height*scale;c.getContext('2d').drawImage(img,0,0,c.width,c.height);c.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=state.meta.caseno+'-timeline-page1.png';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);},'image/png');};
+ img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(new XMLSerializer().serializeToString(svg));
+};
+/* click and drag on the chart */
+let drag=null,dragFrame=0,pinCounter=0;
+function applyDrag(d){
+ const ev=state.events.find(x=>x.id===d.id);
+ ev.dx=d.ox+(d.x-d.sx)/d.k;ev.dy=d.top+(d.y-d.sy)/d.k;ev.pinSeq=d.seq;
+ renderChart();
+}
+$('#pages').addEventListener('pointerdown',e=>{
+ const card=e.target.closest('[data-card]');if(!card)return;
+ const pick=e.target.closest('[data-ev]');
+ drag={id:card.dataset.card,sx:e.clientX,sy:e.clientY,x:e.clientX,y:e.clientY,k:card.ownerSVGElement.getScreenCTM().a,ox:+card.dataset.ox,top:+card.dataset.top,moved:false,pick:pick&&pick.dataset.ev,seq:++pinCounter};
+ e.preventDefault();
+});
+/* The chart redraws while dragging, so these listen on the window instead of the box being dragged. */
+window.addEventListener('pointermove',e=>{
+ if(!drag)return;
+ drag.x=e.clientX;drag.y=e.clientY;
+ if(Math.hypot(drag.x-drag.sx,drag.y-drag.sy)>4)drag.moved=true;
+ if(drag.moved&&!dragFrame)dragFrame=requestAnimationFrame(()=>{dragFrame=0;if(drag)applyDrag(drag);});
+});
+window.addEventListener('pointerup',e=>{
+ if(!drag)return;
+ const d=drag;drag=null;
+ if(d.moved){d.x=e.clientX;d.y=e.clientY;applyDrag(d);}
+ else if(d.pick)select(d.pick);
+});
+window.addEventListener('pointercancel',()=>{drag=null;});
+$('#pages').addEventListener('click',e=>{
+ const top=e.target.closest('.toplink');
+ if(top&&top.dataset.page==='1'){e.preventDefault();showTab('page');return;}
+ const a=e.target.closest('[data-act]');if(a&&!e.target.closest('[data-card]'))showTab(a.dataset.act);});
+state.sections=standardSections('2026-03-10','01:30','02:30',{});
+refresh();
+</script>
+</body>
+</html>
