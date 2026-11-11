@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!-- The browser enforces this policy: no network requests, no outside scripts, fonts, or images. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-U3Q+jm6oybWHJNcE9uyFxn72wWfZOpqwFQEu44yklCw='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-1JS5Cbz3FpRkbdROUIuZLbkHaDXOqGnp0YdKZpLB7Xc='; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
 <meta name="referrer" content="no-referrer">
 <title>Case Timeline</title>
 <style id="pagestyle">@page{size:11in 8.5in;margin:0}</style>
@@ -25,7 +25,7 @@ button.small{padding:3px 8px;font-size:12.5px}
 button:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .main{flex:1;display:flex;min-height:0}
-#stage{flex:1;overflow:auto;padding:16px;min-width:0}
+#stage{flex:1;overflow:auto;padding:16px;min-width:0;overflow-anchor:none}
 #warn{display:none;background:var(--warn);color:var(--warn-ink);border:1px solid #e8cf91;border-radius:4px;padding:8px 12px;margin:0 auto 12px;max-width:1056px}
 .paper{position:relative;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.28);margin:0 auto 16px}
 .hot{position:absolute;display:block;background:transparent}
@@ -131,6 +131,35 @@ body.nocase aside,body.nocase .hascase,body.nocase #warn{display:none}
 @media print{.editspot,.tocback,.inline-edit{display:none!important}}
 .sectionspot:hover{background:rgba(255,255,255,.2)}
 
+.ctxmenu{position:fixed;z-index:50;min-width:230px;max-width:320px;background:#fff;border:1px solid #b9c0c9;border-radius:6px;box-shadow:0 6px 20px rgba(0,0,0,.18);padding:4px}
+.ctxmenu button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:4px;padding:6px 10px;font:inherit;font-size:13.5px;color:inherit;cursor:pointer}
+.ctxmenu button small{display:block;font-size:11.5px;color:var(--muted,#5d6670)}
+.ctxmenu button:hover:not([disabled]),.ctxmenu button:focus-visible{background:#e8f0fd;outline:none}
+.ctxmenu button[disabled]{opacity:.45;cursor:default}
+.ctxmenu button.danger{color:#a32020}
+.ctxmenu .sep{height:1px;background:#e1e4e8;margin:4px 6px}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1c1f23;color:#fff;padding:8px 14px;border-radius:6px;font-size:13.5px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+#toast.show{opacity:1}
+@media print{.ctxmenu,#toast{display:none!important}}
+
+.hlrow{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px}
+.hlrow button{width:26px;height:26px;padding:0;border:1px solid #9aa3ad;border-radius:4px;cursor:pointer}
+.hlrow button.hlnone{width:auto;padding:0 8px;font-size:12.5px;background:#fff}
+.hlrow button.on,.hlrow label.on{outline:2px solid var(--accent);outline-offset:1px}
+.hlcustom{display:flex;align-items:center;gap:4px;font-size:12.5px;color:var(--muted);border-radius:4px;padding:0 2px}
+.hlcustom input{width:30px;height:26px;padding:0;border:1px solid #9aa3ad;border-radius:4px;background:#fff;cursor:pointer}
+.ctxmenu .swrow{display:flex;gap:6px;padding:4px 10px 6px}
+.ctxmenu .swrow button{width:24px;height:24px;padding:0;border:1px solid #9aa3ad;border-radius:4px}
+.ctxmenu .swrow button.on,.ctxmenu .swrow button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.ctxmenu .swrow button:hover{filter:brightness(.95)}
+.helpbtn{width:32px;height:32px;padding:0;border-radius:50%;font-weight:700;font-size:15px}
+#helpdlg{width:min(680px,calc(100vw - 32px));max-height:calc(100vh - 48px);overflow:auto;padding:20px 24px}
+#helpdlg h2{margin:0 0 4px;font-size:20px}
+#helpdlg h3{margin:16px 0 4px;font-size:15px}
+#helpdlg ul{margin:0;padding-left:20px}
+#helpdlg li{margin:3px 0;font-size:14px;line-height:1.4}
+#helpdlg .close{float:right}
+
 </style>
 </head>
 <body>
@@ -159,7 +188,50 @@ body.nocase aside,body.nocase .hascase,body.nocase #warn{display:none}
       <button id="csvout">Events as CSV</button>
     </div></details>
   </div>
+  <button id="helpbtn" class="helpbtn" title="How to use Case Timeline" aria-label="How to use Case Timeline" aria-haspopup="dialog">?</button>
 </div>
+<dialog id="helpdlg" aria-labelledby="helptitle">
+  <button class="small close" id="helpclose">Close</button>
+  <h2 id="helptitle">How to use Case Timeline</h2>
+  <p class="hint">On a Mac trackpad, right-click is a two-finger click or Control-click.</p>
+  <h3>On the chart</h3>
+  <ul>
+    <li><b>Click an event box</b> to open it in the Events tab on the right.</li>
+    <li><b>Drag an event box</b> to move its label. The time stays where it is, and nearby lines make room.</li>
+    <li><b>Right-click an event box</b> to highlight it, merge it with the box to its left or right, split a shared box, reset its position, tidy its line, or delete it.</li>
+    <li><b>Right-click empty space on a line</b> to add an event at that time, or to tidy that line.</li>
+    <li><b>Click the title, subtitle, case number, prepared by, or footer</b> to edit it in place. The change shows on every page. Press Enter to keep it or Esc to cancel.</li>
+    <li><b>Click a black section heading</b> to rename that section.</li>
+    <li><b>Click the legend</b> to open the Legend tab. <b>Click a line's date label</b> to open the Sections tab.</li>
+    <li><b>Click a row in the Contents table</b> to jump to that section. In a saved PDF these are links, and the title on later pages links back to the contents.</li>
+  </ul>
+  <h3>Tidying lines</h3>
+  <ul>
+    <li><b>Shrink</b> pulls moved boxes back toward their line, keeping each one above or below and at its left-right spot.</li>
+    <li><b>Optimize</b> rearranges every box on a line so the line is as short as possible.</li>
+    <li><b>Reset</b> puts boxes back where the app would place them.</li>
+    <li>Use them on one line from the right-click menu, or on every line from the Page tab under Spacing.</li>
+  </ul>
+  <h3>Highlighting</h3>
+  <ul>
+    <li>Right-click an event and choose <b>Highlight</b>, or pick a color under Highlight in the Events tab. Yellow is the default. <b>Other</b> picks any color.</li>
+    <li>Each color used gets its own legend entry. Rename it in the Legend tab, for example "Seen on camera".</li>
+    <li>In Excel, the Highlight column takes Yellow, Green, Blue, Pink, Orange, or Purple.</li>
+  </ul>
+  <h3>The tabs on the right</h3>
+  <ul>
+    <li><b>Events:</b> edit the selected event, or click any event in the list.</li>
+    <li><b>Sections:</b> set each section's dates and how much time one line covers. Drag sections to reorder them, and untick one to leave it out.</li>
+    <li><b>Legend:</b> rename icons and chart marks, and add icons from the library.</li>
+    <li><b>Page:</b> title, footer, paper size, and spacing.</li>
+    <li><b>Map:</b> export locations for a mapping tool.</li>
+  </ul>
+  <h3>Saving and printing</h3>
+  <ul>
+    <li>Changes save to the case's Excel file on their own. The status at the top says when. Close the file in Excel while you work here.</li>
+    <li><b>Print / Save PDF</b>, then choose Save as PDF, makes the file for the DA.</li>
+  </ul>
+</dialog>
 <div class="main">
   <div id="stage"><div id="banner" hidden></div><div id="warn" role="status"></div><div id="pages"></div></div>
   <aside>
@@ -214,6 +286,9 @@ body.nocase aside,body.nocase .hascase,body.nocase #warn{display:none}
       <label class="f">Prepared by<input id="f-by"></label>
       <label class="f">Footer text<input id="f-footer"></label>
       <label class="f">Paper<select id="f-paper"><option value="letter">Letter, landscape</option><option value="legal">Legal, landscape</option></select></label>
+      <h3>Spacing</h3>
+      <p class="hint"><b>Shrink</b> pulls every moved box back toward its line, keeping its side and left-right spot. <b>Optimize</b> rearranges all boxes so each line is as short as possible. Right-click a line or a box to do this for just one line.</p>
+      <div class="row"><button class="small" id="shrinkall">Shrink extra space</button><button class="small" id="optimizeall">Optimize every line</button></div><p class="hint" id="shrinkmsg" role="status"></p>
     </section>
     <section class="panel" id="p-map">
       <p class="note">This tool never goes online. Anything you paste or upload into Google leaves this computer, so check agency policy first.</p>
@@ -389,7 +464,11 @@ const XLSX=(()=>{
 /* ---------- turns a case into workbook sheets, and workbook sheets back into a case ---------- */
 const CaseFile=(()=>{
  const pad2=n=>String(n).padStart(2,'0');
- const EVENT_COLUMNS=['Date','Time','Approximate','End','Title','Icon','Location name','Address','Latitude','Longitude','Notes','ID','Label X','Label Y','Own box'];
+ const EVENT_COLUMNS=['Date','Time','Approximate','End','Title','Icon','Location name','Address','Latitude','Longitude','Notes','Highlight','ID','Label X','Label Y','Own box','Box with'];
+ /* Highlight colors by name, so the Excel column can say Yellow instead of a color code. Any #RRGGBB also works. */
+ const HL_NAMES={yellow:'#ffe873',green:'#b8f0b0',blue:'#bfdcff',pink:'#ffc6e0',orange:'#ffd2a1',purple:'#dccbff'};
+ const hlRead=v=>{const t=text(v).toLowerCase();if(!t||/^(no|none|false|0)$/.test(t))return '';if(HL_NAMES[t])return HL_NAMES[t];if(/^#?[0-9a-f]{6}$/.test(t))return '#'+t.replace('#','');return yes(t)?HL_NAMES.yellow:'';};
+ const hlWrite=c=>{if(!c)return null;const n=Object.keys(HL_NAMES).find(k=>HL_NAMES[k]===c.toLowerCase());return n?n[0].toUpperCase()+n.slice(1):c;};
  const MARK_LABELS={dot:'Event time',exact:'Exact time',approx:'Approximate time',bar:'Duration',group:'Events close together',gap:'Time skipped'};
  const RULE_TIMES={'Burst: a neighbor within':'burst','Active: a neighbor within':'active','Before the Incident covers':'beforeLen','Incident with no end time':'incidentLen','Response covers':'responseLen','Investigation covers at least':'investigationLen','Longest short-section line: burst':'floors.0','Longest short-section line: active':'floors.1','Longest short-section line: quiet':'floors.2'};
  const RULE_NUMBERS={'Smallest burst or active group':'minGroup','Most sections':'maxSections','Most events on one line':'maxPerLine','Longest line, compared to its section (percent)':'spanPct'};
@@ -397,8 +476,9 @@ const CaseFile=(()=>{
   'Add an event: fill in a new row at the bottom of the Events sheet. Date, Time, and Title are needed. Order does not matter, because the app sorts by date.',
   'Example row format: 3/10/2026 | 01:52 | (Approximate blank or Yes) | (End blank) | Rear window broken | Glass break',
   'Time uses a 24-hour clock. Pick Icon from the drop-down, which comes from the Legend sheet.',
+  'Highlight is optional: pick Yellow, Green, Blue, Pink, Orange, or Purple. Leave it blank for no highlight.',
   'Address and Latitude/Longitude are optional and are used only for map exports. If both are present, the coordinates are used.',
-  'Do not change the hidden ID, Label X, Label Y, and Own box columns. Leave them blank on new rows and the app fills them in.',
+  'Do not change the hidden ID, Label X, Label Y, Own box, and Box with columns. Leave them blank on new rows and the app fills them in.',
   'Sections print in the same order as the rows on the Sections sheet.',
   'Close this file in Excel before saving from the Case Timeline app.'
  ];
@@ -469,7 +549,7 @@ const CaseFile=(()=>{
   const lat=o['latitude'],lng=o['longitude'],num=v=>typeof v==='number'?v:text(v)===''?null:+text(v);
   const la=num(lat),ln=num(lng);
   const dx=num(o['label x']),dy=num(o['label y']);
-  return {id:text(o['id'])||nextId(),t:`${date}T${time}`,icon:iconFor(text(o['icon'])),title,approx:yes(o['approximate']),end:readStamp(o['end']),place:text(o['location name']),address:text(o['address']),coords:la!==null&&ln!==null&&!isNaN(la)&&!isNaN(ln)?`${la}, ${ln}`:'',notes:text(o['notes']),dx:dx===null||isNaN(dx)?null:dx,dy:dy===null||isNaN(dy)?null:dy,solo:yes(o['own box'])?'own':text(o['own box'])};
+  return {id:text(o['id'])||nextId(),t:`${date}T${time}`,icon:iconFor(text(o['icon'])),title,approx:yes(o['approximate']),end:readStamp(o['end']),place:text(o['location name']),address:text(o['address']),coords:la!==null&&ln!==null&&!isNaN(la)&&!isNaN(ln)?`${la}, ${ln}`:'',notes:text(o['notes']),hl:hlRead(o['highlight']),dx:dx===null||isNaN(dx)?null:dx,dy:dy===null||isNaN(dy)?null:dy,solo:yes(o['own box'])?'own':text(o['own box']),join:text(o['box with'])};
  }
 
  function toSheets(c){
@@ -478,7 +558,7 @@ const CaseFile=(()=>{
   const events=[...c.events].sort((a,b)=>new Date(a.t)-new Date(b.t)).map(e=>{
    const [d,t]=e.t.split('T'),p=e.coords?String(e.coords).split(',').map(x=>+x.trim()):[];
    const ok=p.length===2&&!p.some(isNaN);
-   return [{date:d},{time:t},e.approx?'Yes':null,e.end?{dt:e.end}:null,e.title,nameOf(e.icon),e.place||null,e.address||null,ok?p[lat]:null,ok?p[lng]:null,e.notes||null,e.id,e.dx??null,e.dy??null,e.solo||null];
+   return [{date:d},{time:t},e.approx?'Yes':null,e.end?{dt:e.end}:null,e.title,nameOf(e.icon),e.place||null,e.address||null,ok?p[lat]:null,ok?p[lng]:null,e.notes||null,hlWrite(e.hl),e.id,e.dx??null,e.dy??null,e.solo||null,e.join||null];
   });
   const kept=(c.unreadable||[]).map(o=>EVENT_COLUMNS.map(h=>o._raw[h.toLowerCase()]??null));
   const images=[],legendRows=c.legend.map(l=>{
@@ -489,11 +569,12 @@ const CaseFile=(()=>{
   images.forEach(([key,data])=>{for(let i=0,n=1;i<data.length;i+=30000,n++)iconRows.push([key,n,data.slice(i,i+30000)]);});
   const m=c.meta,r=c.suggest,settings=[['Setting','Value'],['Title',m.title],['Subtitle',m.subtitle],['Case number',m.caseno],['Prepared by',m.by],['Footer',m.footer],['Paper',m.paper],['Shrink empty stretches',yesNo(c.hideEmpty)],['Start each section on a new page',yesNo(c.sectionPages)],['Legend on each page',c.legendMode],['Legend: shorten after (rows)',String(c.legendLimit)]];
   for(const k of Object.keys(MARK_LABELS))settings.push(['Legend label: '+MARK_LABELS[k],c.markNames[k]]);
+  for(const [color,name] of Object.entries(c.hlNames||{}))if(name)settings.push(['Highlight label: '+(hlWrite(color)),name]);
   for(const [label,path] of Object.entries(RULE_TIMES)){const o=getPath(r,path);settings.push(['Grouping rule: '+label,`${o.v} ${o.u}`]);}
   for(const [label,path] of Object.entries(RULE_NUMBERS))settings.push(['Grouping rule: '+label,String(r[path])]);
   settings.push(['Grouping rule: Line lengths it may use',r.lines.join(', ')]);
   const sheets=[
-   {name:'Events',head:true,freeze:true,coords:[8,9],rows:[EVENT_COLUMNS,...events,...kept],columns:[12,8,13,17,44,18,18,44,11,11,30,8,8,8,8].map((width,i)=>({width,hidden:i>=11})),validations:[{range:'F2:F2000',formula:'Legend!$A$2:$A$200'},{range:'C2:C2000',formula:'"Yes"'}]},
+   {name:'Events',head:true,freeze:true,coords:[8,9],rows:[EVENT_COLUMNS,...events,...kept],columns:[12,8,13,17,44,18,18,44,11,11,30,11,8,8,8,8,8].map((width,i)=>({width,hidden:i>=12})),validations:[{range:'F2:F2000',formula:'Legend!$A$2:$A$200'},{range:'C2:C2000',formula:'"Yes"'},{range:'L2:L2000',formula:'"Yellow,Green,Blue,Pink,Orange,Purple"'}]},
    {name:'Legend',head:true,freeze:true,rows:[['Display name','Built-in icon','Custom image'],...legendRows],columns:[{width:24},{width:16},{width:16}]},
    {name:'Sections',head:true,freeze:true,rows:[['Section heading','From','To','Line length','Unit','Include','Automatic dates','Automatic line length','Standard section'],...c.sections.map(s=>[s.name||null,s.start?{dt:s.start}:null,s.end?{dt:s.end}:null,+s.n||1,s.unit,yesNo(s.include!==false),s.role?yesNo(s.autoDates):null,s.role?yesNo(s.autoLine):null,s.role||null])],columns:[26,17,17,11,10,9,11,11,15].map(width=>({width})),validations:[{range:'E2:E200',formula:'"minute,hour,day,week,month,year"'}]},
    {name:'Settings',head:true,freeze:true,rows:settings,columns:[{width:44},{width:60}]},
@@ -553,6 +634,8 @@ const CaseFile=(()=>{
   pick('Legend on each page',v=>{if(['auto','all','page','section'].includes(v))c.legendMode=v;});
   pick('Legend: shorten after (rows)',v=>{c.legendLimit=v;});
   for(const k of Object.keys(MARK_LABELS))pick('Legend label: '+MARK_LABELS[k],v=>{if(v)c.markNames[k]=v;});
+  c.hlNames={};
+  for(const k of Object.keys(set)){const m2=k.match(/^Highlight label: (.+)$/);if(m2&&set[k]){const col=hlRead(m2[1]);if(col)c.hlNames[col]=set[k];}}
   for(const [label,path] of Object.entries(RULE_TIMES))pick('Grouping rule: '+label,v=>{const t=v.match(/^([\d.]+)\s*(minute|hour|day)/i);if(t)setPath(c.suggest,path,{v:+t[1],u:t[2].toLowerCase()});});
   for(const [label,path] of Object.entries(RULE_NUMBERS))pick('Grouping rule: '+label,v=>{if(+v>0)c.suggest[path]=+v;});
   pick('Grouping rule: Line lengths it may use',v=>{const l=v.split(',').map(x=>x.trim()).filter(Boolean);if(l.length)c.suggest.lines=l;});
@@ -579,11 +662,11 @@ const CaseFile=(()=>{
  }
  function eventsToCSV(c){
   const q=v=>{let s=String(v??'');if(/^[=+\-@\t\r]/.test(s))s="'"+s;return /[",\r\n]/.test(s)||s!==String(v??'')?'"'+s.replace(/"/g,'""')+'"':s;};
-  const nameOf=id=>(c.legend.find(l=>l.id===id)||{name:''}).name,cols=EVENT_COLUMNS.slice(0,11);
-  const rows=[...c.events].sort((a,b)=>new Date(a.t)-new Date(b.t)).map(e=>{const [d,t]=e.t.split('T'),p=e.coords?String(e.coords).split(','):['',''];return [d,t,e.approx?'Yes':'',e.end?e.end.replace('T',' '):'',e.title,nameOf(e.icon),e.place,e.address,(p[0]||'').trim(),(p[1]||'').trim(),e.notes].map(q).join(',');});
+  const nameOf=id=>(c.legend.find(l=>l.id===id)||{name:''}).name,cols=EVENT_COLUMNS.slice(0,12);
+  const rows=[...c.events].sort((a,b)=>new Date(a.t)-new Date(b.t)).map(e=>{const [d,t]=e.t.split('T'),p=e.coords?String(e.coords).split(','):['',''];return [d,t,e.approx?'Yes':'',e.end?e.end.replace('T',' '):'',e.title,nameOf(e.icon),e.place,e.address,(p[0]||'').trim(),(p[1]||'').trim(),e.notes,hlWrite(e.hl)||''].map(q).join(',');});
   return [cols.join(','),...rows].join('\r\n')+'\r\n';
  }
- return {toSheets,fromSheets,toObjects,eventFromRow,parseCSV,eventsToCSV};
+ return {toSheets,fromSheets,toObjects,eventFromRow,parseCSV,eventsToCSV,HL_NAMES};
 })();
 
 /* ---------- the case folder, opening cases, and automatic saving ---------- */
@@ -861,19 +944,107 @@ const ICONS={
  unknown:lettered('?',13),
  important:'<path d="M12 3.500 22 20.500H2z"/><path d="M12 10v5M12 17.500v.01"/>'
 };
+/* Alternate styles, so a case can use several looks within one category. Solid versions fill the shape and draw details in white. */
+const HANDSET_D='M6 3h3l1.5 5-2 1.5a12 12 0 0 0 6 6l1.5-2 5 1.5v3a2 2 0 0 1-2 2C11 20 4 13 4 5a2 2 0 0 1 2-2z';
+const solid=(d,extra)=>`<path d="${d}" fill="currentColor"/>`+(extra||'');
+const W_='stroke="#fff"';
+const solidLetter=(ch,size)=>`<circle cx="12" cy="12" r="9.5" fill="currentColor"/><text x="12" y="16.5" text-anchor="middle" font-family="Arial" font-size="${size||12.5}" font-weight="700" fill="#fff" stroke="none">${ch}</text>`;
+Object.assign(ICONS,{
+ phone_fill:solid(HANDSET_D),
+ phone_ring:HANDSET+'<path d="M14.5 3.5a6 6 0 0 1 6 6M14.5 7a2.500 2.500 0 0 1 2.500 2.500"/>',
+ deskphone:'<path d="M4 20.500h16l-1.500-8h-13z"/><path d="M3 8.500c0-3 4-4.500 9-4.500s9 1.500 9 4.500v1.500h-4V8H7v2H3z"/><path d="M10 14.500h.01M12 14.500h.01M14 14.500h.01M10 17.500h.01M12 17.500h.01M14 17.500h.01" stroke-width="2"/>',
+ smartphone_fill:'<rect x="7" y="2.500" width="10" height="19" rx="2" fill="currentColor"/><path d="M11 18.500h2" '+W_+'/>',
+ text_fill:solid('M4 5h16v11H10l-4 4v-4H4z','<path d="M8.500 10.500v.01M12 10.500v.01M15.500 10.500v.01" stroke-width="2.600" '+W_+'/>'),
+ email_fill:'<rect x="3" y="5" width="18" height="14" rx="1" fill="currentColor"/><path d="m3.500 7.500 8.500 6.500 8.500-6.500" '+W_+'/>',
+ email_open:'<path d="M3 10v10.500h18V10l-9-6.500z"/><path d="m3 10 9 6 9-6"/>',
+ camera_fill:solid('m3 7 13-3.500 2 6.500-13 3.500z','<path d="M9 12.500 10 17H5v4M18 7l3-1v4l-2.200.7"/>'),
+ domecam:'<path d="M3 4.500h18v3.500H3z"/><path d="M5 8a7 7 0 0 0 14 0"/><circle cx="12" cy="11.500" r="2.500"/>',
+ videocam:'<rect x="2.500" y="7" width="12.500" height="10" rx="1.500"/><path d="m15 11 6.500-3.500v9L15 13"/>',
+ videocam_fill:'<rect x="2.500" y="7" width="12.500" height="10" rx="1.500" fill="currentColor"/><path d="m15 11 6.500-3.500v9L15 13z" fill="currentColor"/>',
+ doorbell:'<rect x="7" y="2.500" width="10" height="19" rx="5"/><circle cx="12" cy="8.500" r="2.500"/><circle cx="12" cy="16" r="1.500"/>',
+ photo_fill:solid('M3 8h4l2-3h6l2 3h4v12H3z','<circle cx="12" cy="13.500" r="3.500" '+W_+'/>'),
+ microphone_fill:'<rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.500 11a6.500 6.500 0 0 0 13 0M12 17.500V21M8.500 21h7"/>',
+ alarm_fill:solid('M6 17h12l-1.500-2.200V10a4.500 4.500 0 0 0-9 0v4.800z','<path d="M10 20a2 2 0 0 0 4 0M12 5.500V3.500M3.500 9c.2-2 1-3.500 2.300-4.700M20.500 9c-.2-2-1-3.500-2.300-4.700"/>'),
+ lock_fill:'<rect x="5" y="11" width="14" height="9.500" rx="1" fill="currentColor"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/><path d="M12 14.500v2.500" '+W_+'/>',
+ unlock:'<rect x="5" y="11" width="14" height="9.500" rx="1"/><path d="M8 11V8a4 4 0 0 1 7.800-1.300"/>',
+ door_open:'<path d="M3 21h18M5 21V3h14v18"/><path d="M5 3l8 2.500v16L5 21z" fill="currentColor"/>',
+ window:'<rect x="4" y="3" width="16" height="18"/><path d="M12 3v18M4 12h16"/>',
+ fire_fill:solid('M12 3c1 4 6 6.500 6 12a6 6 0 0 1-12 0c0-2 1-4 2.500-5 .3 2 1.500 3 2.500 3 0-4-1-7 1-10z'),
+ power_fill:solid('M13 2.500 5 13.500h6l-1 8 8-11h-6z'),
+ impact_fill:solid('m12 2 2 5 5-3-2 6 5 2-5 2 2 6-5-3-2 5-2-5-5 3 2-6-5-2 5-2-2-6 5 3z'),
+ firearm_fill:solid('M3 7.500h18v4.500h-9l-1 2.500H8l-1 5.500H3.500l1.200-6L6 12H3z'),
+ rifle_fill:solid('M2 11h13l2-2h5v3h-6l-2 2H9l-2 5H4l1.500-5H2z'),
+ knife_fill:solid('M3 21 14 10l-2-2 7-5c2 4 0 9-3 11l-2-2L5 21z'),
+ casing_fill:solid('M9 21V10c0-3 1.500-6 3-7 1.500 1 3 4 3 7v11z','<path d="M9.500 12h5" '+W_+'/><path d="M8 21h8"/>'),
+ evidence_fill:solid('M5 20 9 5h6l4 15z','<text x="12" y="16.500" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="#fff" stroke="none">1</text>'),
+ evidence_a:'<path d="M5 20 9 5h6l4 15z"/><text x="12" y="16.500" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="currentColor" stroke="none">A</text>',
+ blood_fill:solid('M12 3s6 7 6 11.500a6 6 0 0 1-12 0C6 10 12 3 12 3z'),
+ footprint_fill:solid('M9.500 2.500c3.500-1 7 1.500 7 5.500 0 2-1 3.500-1.500 5.500H8.500C8 11.500 6.500 10 6.500 7.500c0-2.500 1-4.300 3-5z')+solid('M9 16h5.500v2.500a2.750 2.750 0 0 1-5.500 0z'),
+ tag:'<path d="M3 12V3.500h8.500L21 13l-8 8z"/><circle cx="7.500" cy="8" r="1.500"/>',
+ scale:'<rect x="2.500" y="8" width="19" height="8" rx="1"/><path d="M6 8v3.500M9.500 8v2M13 8v3.500M16.500 8v2M20 8v3.500"/>',
+ property_fill:solid('m3 8 9-5 9 5v9l-9 5-9-5z','<path d="m3.500 8.300 8.500 4.700 8.500-4.700M12 13v8.500" '+W_+'/>'),
+ person_fill:'<circle cx="12" cy="7.500" r="4" fill="currentColor"/>'+solid('M4 21c1-5 4-7 8-7s7 2 8 7z'),
+ onfoot:'<circle cx="13.500" cy="4.500" r="2"/><path d="m9 21 2.500-6.500L14 16.500V21M11.500 14.500 12.500 9l3 3 3 1M12.500 9 9.500 10.500 8 13.500"/>',
+ victim_fill:solidLetter('V'),
+ suspect_fill:solidLetter('S'),
+ witness_fill:solidLetter('W',11),
+ officer_fill:solid('m12 3 7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6z','<path d="m12 8 1.200 2.500 2.800.3-2 1.900.5 2.800-2.500-1.400-2.500 1.400.5-2.800-2-1.900 2.800-.3z" fill="#fff" '+W_+' stroke-width="1"/>'),
+ vehicle_fill:solid('M3 16.500v-3.500l2.500-5.500h13L21 13v3.500z','<path d="M4.500 12.500h15" '+W_+'/><circle cx="7.500" cy="17.500" r="2" fill="currentColor" '+W_+'/><circle cx="16.500" cy="17.500" r="2" fill="currentColor" '+W_+'/>'),
+ sedan:'<path d="M2.500 16v-3l3-1 3-4h7l3.500 4 2.500.5V16z"/><path d="M8.500 12h10"/><circle cx="7" cy="16.500" r="2" fill="#fff"/><circle cx="17" cy="16.500" r="2" fill="#fff"/>',
+ van:'<path d="M2.500 16.500V6h13l4 4.500 2 1v5z"/><path d="M15.500 6v5h6"/><circle cx="7" cy="17" r="2" fill="#fff"/><circle cx="17" cy="17" r="2" fill="#fff"/>',
+ motorcycle:'<circle cx="5.500" cy="16" r="3.500"/><circle cx="18.500" cy="16" r="3.500"/><path d="M5.500 16 9 11h6l3.500 5M15 11l-1.500-4H16M9 11l2.500 3"/>',
+ patrol_fill:solid('M3 16.500v-3.500l2.500-5.500h13L21 13v3.500z','<path d="M4.500 12.500h15" '+W_+'/><circle cx="7.500" cy="17.500" r="2" fill="currentColor" '+W_+'/><circle cx="16.500" cy="17.500" r="2" fill="currentColor" '+W_+'/><path d="M9.500 3h5v3.500h-5z" fill="currentColor"/>'),
+ location_fill:solid('M12 21s7-6.500 7-12a7 7 0 0 0-14 0c0 5.500 7 12 7 12z','<circle cx="12" cy="9" r="2.300" fill="#fff" '+W_+'/>'),
+ home_fill:solid('M12 4 3.500 11.200v9.300h17V11.200z','<path d="M10 20.500V15h4v5.500" '+W_+'/>'),
+ apartment:'<rect x="5" y="3" width="14" height="18"/><path d="M9 7h.01M12 7h.01M15 7h.01M9 10.500h.01M12 10.500h.01M15 10.500h.01M9 14h.01M15 14h.01" stroke-width="2"/><path d="M10.500 21v-4h3v4"/>',
+ gasstation:'<path d="M4 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16M3 21h12M4 10h10M14 8l3 2v8a1.500 1.500 0 0 0 3 0V9l-2.500-3"/>',
+ document_fill:solid('M6 3h9l4 4v14H6z','<path d="M9 12h7M9 16h7" '+W_+'/>'),
+ report:'<rect x="5" y="4.500" width="14" height="17" rx="1"/><path d="M9 3h6v3H9zM8.500 11h7M8.500 14.500h7M8.500 18h4"/>',
+ courthouse:'<path d="M3 9.500 12 4l9 5.500zM5 19.500h14M3.500 21.500h17M6.500 11.500v6M10 11.500v6M14 11.500v6M17.500 11.500v6"/>',
+ custody:'<rect x="4" y="3" width="16" height="18"/><path d="M8 3v18M12 3v18M16 3v18"/>',
+ money_fill:'<rect x="3" y="7" width="18" height="10" fill="currentColor"/><circle cx="12" cy="12" r="2.500" '+W_+'/><path d="M6 12v.01M18 12v.01" stroke-width="2.500" '+W_+'/>',
+ dollar:'<circle cx="12" cy="12" r="9"/><path d="M14.800 9.200c-.5-1-1.600-1.500-2.800-1.500-1.600 0-2.800.8-2.800 2.100 0 2.900 5.800 1.500 5.800 4.400 0 1.300-1.200 2.100-2.800 2.100-1.300 0-2.400-.6-2.900-1.600M12 6v1.700M12 16.300V18"/>',
+ receipt:'<path d="M6 3h12v18l-2-1.500-2 1.500-2-1.500-2 1.500-2-1.500L6 21z"/><path d="M9 8h6M9 11.500h6M9 15h4"/>',
+ clock_fill:'<circle cx="12" cy="12" r="9.500" fill="currentColor"/><path d="M12 7v5l3.500 2" '+W_+'/>',
+ flag_fill:'<path d="M5.500 21.500V3.500"/>'+solid('M5.500 4.500h13l-3 4 3 4h-13z'),
+ star_fill:solid('m12 3 2.800 5.800 6.200.9-4.500 4.400 1.100 6.300-5.600-3-5.600 3 1.100-6.300L3 9.700l6.200-.9z'),
+ important_fill:solid('M12 3 22.500 20.500h-21z','<path d="M12 10v5M12 17.500v.01" '+W_+'/>'),
+ unknown_fill:solidLetter('?',13),
+ info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.500v.01"/>',
+ check:'<path d="m4 12.500 5 5L20 6.500"/>',
+ cross:'<path d="M5.500 5.500l13 13M18.500 5.500l-13 13"/>',
+ dot:'<circle cx="12" cy="12" r="6" fill="currentColor"/>',
+ circle:'<circle cx="12" cy="12" r="7.500"/>',
+ square:'<rect x="5" y="5" width="14" height="14"/>',
+ square_fill:'<rect x="5" y="5" width="14" height="14" fill="currentColor"/>',
+ triangle:'<path d="M12 4.500 20 19H4z"/>',
+ triangle_fill:solid('M12 4.500 20 19H4z'),
+ diamond:'<path d="M12 3.500 20.500 12 12 20.500 3.500 12z"/>',
+ diamond_fill:solid('M12 3.500 20.500 12 12 20.500 3.500 12z')
+});
 const ICON_GROUPS=[
- ['Calls and messages',['phone','phonein','phoneout','missed','voicemail','text','conversation','email','social','radio','dispatch','smartphone','laptop','celltower']],
- ['Recordings',['camera','bodycam','photo','microphone','plate']],
- ['Scene and entry',['alarm','glass','door','lock','key','power','fire','impact']],
- ['Weapons',['weapon','firearm','rifle','knife','blunt','casing']],
- ['Evidence',['evidence','bag','fingerprint','footprint','blood','dna','drugs','lab','magnifier','property']],
- ['People',['person','victim','suspect','witness','group','interview','officer','k9','arrest']],
+ ['Calls and messages',['phone','phone_fill','phone_ring','deskphone','phonein','phoneout','missed','voicemail','text','text_fill','conversation','email','email_fill','email_open','social','radio','dispatch','smartphone','smartphone_fill','laptop','celltower']],
+ ['Recordings',['camera','camera_fill','domecam','doorbell','videocam','videocam_fill','bodycam','photo','photo_fill','microphone','microphone_fill','plate']],
+ ['Scene and entry',['alarm','alarm_fill','glass','window','door','door_open','lock','lock_fill','unlock','key','power','power_fill','fire','fire_fill','impact','impact_fill']],
+ ['Weapons',['weapon','firearm','firearm_fill','rifle','rifle_fill','knife','knife_fill','blunt','casing','casing_fill']],
+ ['Evidence',['evidence','evidence_fill','evidence_a','bag','tag','scale','fingerprint','footprint','footprint_fill','blood','blood_fill','dna','drugs','lab','magnifier','property','property_fill']],
+ ['People',['person','person_fill','onfoot','victim','victim_fill','suspect','suspect_fill','witness','witness_fill','group','interview','officer','officer_fill','k9','arrest']],
  ['Medical',['medical','ambulance','deceased']],
- ['Vehicles and places',['vehicle','patrol','truck','bicycle','pursuit','location','home','business']],
- ['Legal and money',['document','warrant','gavel','money','card']],
- ['Markers',['clock','calendar','flag','star','important','unknown']]
+ ['Vehicles and places',['vehicle','vehicle_fill','sedan','van','truck','motorcycle','bicycle','patrol','patrol_fill','pursuit','location','location_fill','home','home_fill','apartment','business','gasstation']],
+ ['Legal and money',['document','document_fill','report','warrant','gavel','courthouse','custody','money','money_fill','dollar','receipt','card']],
+ ['Markers',['clock','clock_fill','calendar','flag','flag_fill','star','star_fill','important','important_fill','unknown','unknown_fill','info','check','cross','dot','circle','square','square_fill','triangle','triangle_fill','diamond','diamond_fill']]
 ];
 const LIBRARY_NAMES={alarm:'Alarm',glass:'Glass break',door:'Forced entry',lock:'Secured / locked',phone:'Phone call',dispatch:'911 / dispatch',camera:'Video',vehicle:'Vehicle',person:'Person seen',officer:'Police action',evidence:'Evidence',blood:'Biological evidence',firearm:'Firearm',knife:'Edged weapon',fire:'Fire',money:'Transaction',document:'Legal / records',interview:'Interview',arrest:'Arrest',location:'Location',clock:'Time marker',text:'Text message',conversation:'Conversation',phonein:'Incoming call',phoneout:'Outgoing call',missed:'Missed call',voicemail:'Voicemail',email:'Email',social:'Social media',radio:'Radio traffic',smartphone:'Mobile phone',laptop:'Computer',celltower:'Cell tower',photo:'Photo',bodycam:'Body camera',microphone:'Audio recording',plate:'License plate',weapon:'Weapon',blunt:'Blunt object',casing:'Shell casing',rifle:'Long gun',bag:'Evidence bag',fingerprint:'Fingerprint',footprint:'Footprint',dna:'DNA',drugs:'Drugs',lab:'Lab result',magnifier:'Search',property:'Property',gavel:'Court',warrant:'Warrant',victim:'Victim',suspect:'Suspect',witness:'Witness',group:'Group',medical:'Medical',ambulance:'Ambulance',deceased:'Deceased',patrol:'Patrol unit',k9:'K-9',pursuit:'Pursuit',home:'Residence',business:'Business',key:'Keys',card:'Card used',power:'Power loss',impact:'Impact',truck:'Truck',bicycle:'Bicycle',calendar:'Date marker',flag:'Note',star:'Key event',unknown:'Unconfirmed',important:'Important'};
+Object.assign(LIBRARY_NAMES,{phone_fill:'Phone call (solid)',phone_ring:'Phone ringing',deskphone:'Landline',smartphone_fill:'Mobile phone (solid)',text_fill:'Text message (solid)',email_fill:'Email (solid)',email_open:'Email opened',
+ camera_fill:'Video (solid)',domecam:'Dome camera',doorbell:'Doorbell camera',videocam:'Video recording',videocam_fill:'Video recording (solid)',photo_fill:'Photo (solid)',microphone_fill:'Audio recording (solid)',
+ alarm_fill:'Alarm (solid)',lock_fill:'Secured / locked (solid)',unlock:'Unlocked',door_open:'Door open',window:'Window',fire_fill:'Fire (solid)',power_fill:'Power loss (solid)',impact_fill:'Impact (solid)',
+ firearm_fill:'Firearm (solid)',rifle_fill:'Long gun (solid)',knife_fill:'Edged weapon (solid)',casing_fill:'Shell casing (solid)',
+ evidence_fill:'Evidence (solid)',evidence_a:'Evidence marker A',blood_fill:'Biological evidence (solid)',footprint_fill:'Footprint (solid)',tag:'Tag / label',scale:'Measurement',property_fill:'Property (solid)',
+ person_fill:'Person seen (solid)',onfoot:'On foot',victim_fill:'Victim (solid)',suspect_fill:'Suspect (solid)',witness_fill:'Witness (solid)',officer_fill:'Police action (solid)',
+ vehicle_fill:'Vehicle (solid)',sedan:'Car, side view',van:'Van',motorcycle:'Motorcycle',patrol_fill:'Patrol unit (solid)',location_fill:'Location (solid)',home_fill:'Residence (solid)',apartment:'Apartment building',gasstation:'Gas station',
+ document_fill:'Legal / records (solid)',report:'Report',courthouse:'Courthouse',custody:'Custody / jail',money_fill:'Transaction (solid)',dollar:'Money',receipt:'Receipt',
+ clock_fill:'Time marker (solid)',flag_fill:'Note (solid)',star_fill:'Key event (solid)',important_fill:'Important (solid)',unknown_fill:'Unconfirmed (solid)',info:'Information',check:'Confirmed',cross:'Ruled out',
+ dot:'Dot',circle:'Circle',square:'Square',square_fill:'Square (solid)',triangle:'Triangle',triangle_fill:'Triangle (solid)',diamond:'Diamond',diamond_fill:'Diamond (solid)'});
 
 /* ---------- starting values for the Grouping rules panel ---------- */
 const LINE_CHOICES=[[1,'minute'],[5,'minute'],[10,'minute'],[15,'minute'],[30,'minute'],[1,'hour'],[2,'hour'],[3,'hour'],[6,'hour'],[12,'hour'],[1,'day'],[1,'week'],[1,'month'],[1,'year']];
@@ -889,6 +1060,7 @@ const state={
  sectionPages:false,
  legendMode:'auto',legendLimit:3,
  markNames:{dot:'Event time',exact:'Exact time',approx:'~ Approximate time',bar:'Duration',group:'Events close together',gap:'Time skipped'},
+ hlNames:{},
  legend:['person','vehicle','phone','lock','camera','glass','alarm','dispatch','officer','evidence','interview','document','money','arrest'].map(k=>({id:k,icon:k,name:LIBRARY_NAMES[k]})),
  events:[],
  sections:[]
@@ -904,6 +1076,13 @@ const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
 const md=d=>MON[d.getMonth()]+' '+d.getDate();
 const local=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+hm(d);
 const sorted=()=>[...state.events].sort((a,b)=>new Date(a.t)-new Date(b.t));
+/* Highlight colors. They are pale so black text stays readable in print. */
+const HL_COLORS=Object.entries(CaseFile.HL_NAMES).map(([n,c])=>({name:n[0].toUpperCase()+n.slice(1),c}));
+let lastHl=HL_COLORS[0].c;
+const hlName=c=>(HL_COLORS.find(h=>h.c===String(c).toLowerCase())||{name:'Custom color'}).name;
+const hlLabel=c=>(state.hlNames||{})[c]||(c===HL_COLORS[0].c?'Highlighted':'Highlighted ('+hlName(c)+')');
+const hlUsed=evs=>[...new Set(evs.map(e=>e.hl).filter(Boolean))];
+function setHighlight(e,c){e.hl=c||'';if(c)lastHl=c;renderChart();renderList();renderEditor();renderLegend();}
 const legendOf=id=>state.legend.find(l=>l.id===id)||{id,icon:'clock',name:'(no legend entry)'};
 function iconMarkup(item,x,y,size){
  if(item.img)return `<image href="${item.img}" x="${x}" y="${y}" width="${size}" height="${size}"/>`;
@@ -966,13 +1145,27 @@ function wrapRow(time,title,maxW){
  return {lines:lines.slice(0,3),width,tw};
 }
 /* Which events share a box on the chart right now, so the editor can offer to split them. */
-let stackMates=new Map();
+let stackMates=new Map(),lineOf=new Map(),boxesOf=new Map();
+/* Set only while Shrink or Optimize runs: which lines to tighten. Optimize reports each line's height before and after. */
+let shrinkRows=null,optimizeRows=null,optimizeReport=new Map();
 function layoutLine(row,x0,x1,maxH){
+ const shrinking=!!(shrinkRows&&shrinkRows(row)),optimizing=!!(optimizeRows&&optimizeRows(row));
+ row.items.forEach(e=>lineOf.set(e.id,row.items));
  const span=row.end-row.start,scale=t=>x0+(t-row.start)/span*(x1-x0),longLine=span>864e5*1.01;
  const entries=row.items.map(e=>({e,x:scale(+new Date(e.t))})).sort((a,b)=>a.x-b.x);
  const clusters=[];
  /* Events marked as their own box never share one, so each can be dragged on its own. */
- for(const en of entries){const last=clusters.filter(c=>!c.solo).pop();if(!en.e.solo&&last&&en.x-last.x<9)last.members.push(en);else clusters.push({x:en.x,members:[en],solo:!!en.e.solo});}
+ /* Events merged by hand ("Box with") join the box of the event they point to, as long as it is on this line. */
+ const byId=new Map(row.items.map(e=>[e.id,e]));
+ const rootOf=e=>{let r=e;for(let i=0;i<20&&r.join&&byId.has(r.join)&&r.join!==r.id;i++)r=byId.get(r.join);return r;};
+ const joined=[];
+ for(const en of entries){
+  if(rootOf(en.e)!==en.e){joined.push(en);continue;}
+  const last=clusters.filter(c=>!c.solo).pop();if(!en.e.solo&&last&&en.x-last.x<9)last.members.push(en);else clusters.push({x:en.x,members:[en],solo:!!en.e.solo});
+ }
+ for(const en of joined){const root=rootOf(en.e),c=clusters.find(k=>k.members.some(m=>m.e===root));if(c){c.members.push(en);c.members.sort((a,b)=>a.x-b.x);c.x=c.members[0].x;}}
+ const boxes=clusters.map(c=>({key:c.members[0].e.id,x:c.x,ids:c.members.map(m=>m.e.id)})).sort((a,b)=>a.x-b.x);
+ boxes.forEach((b,i)=>b.ids.forEach(id=>boxesOf.set(id,{boxes,i,row})));
  clusters.forEach(c=>{if(c.members.length>1)c.members.forEach(m=>stackMates.set(m.e.id,c.members.map(o=>o.e)));});
  const cards=clusters.map(c=>{
   const rowsIn=c.members.map(({e})=>{const d=new Date(e.t),time=(e.approx?'~':'')+(longLine?(d.getMonth()+1)+'/'+d.getDate()+' ':'')+hm(d),w=wrapRow(time,e.title,158);return {e,time,...w,h:Math.max(24,w.lines.length*12.5+7)};});
@@ -986,12 +1179,17 @@ function layoutLine(row,x0,x1,maxH){
  const lineHits=(l,cx,w,top,h)=>l.x1<cx+w&&l.x2>cx&&l.y1<top+h&&l.y2>top;
  const fits=(list,c,top)=>list.every(p=>!boxesHit(c,top,p)&&!lineHits(leader(p,p.top),c.cx,c.w,top,c.h)&&!lineHits(leader(c,top),p.cx,p.w,p.top,p.h));
  cards.forEach(c=>{c.k=c.rows[0].e;c.pinned=c.k.dx!=null&&c.k.dy!=null;c.pull=0;});
- const pinned=cards.filter(c=>c.pinned).sort((a,b)=>(b.k.pinSeq||0)-(a.k.pinSeq||0)),autos=cards.filter(c=>!c.pinned);
+ /* Shrinking keeps each moved box on its side and at its left-right spot, nearest the axis first, so stacked boxes keep their order. */
+ const gapTo=c=>c.k.dy+c.h/2<2?-(c.k.dy+c.h):c.k.dy;
+ const pinned=cards.filter(c=>c.pinned).sort(shrinking?(a,b)=>gapTo(a)-gapTo(b):(a,b)=>(b.k.pinSeq||0)-(a.k.pinSeq||0)),autos=cards.filter(c=>!c.pinned);
+ const options=(list,c,side)=>{const first=side==='up'?ABOVE-c.h:BELOW,more=list.map(p=>side==='up'?p.top-4-c.h:p.top+p.h+4).filter(t=>side==='up'?t<first:t>first);return [first,...more].sort((a,b)=>Math.abs(a)-Math.abs(b));};
+ const best=(list,c,side)=>{const o=options(list,c,side);return o.find(t=>fits(list,c,t))??o[o.length-1];};
  let above=0,below=0;
  const place=()=>{
   const list=[];
   for(const c of pinned){
    c.cx=clamp(c.x+c.k.dx,x0,Math.max(x0,x1-c.w));
+   if(shrinking){c.top=best(list,c,c.k.dy+c.h/2<2?'up':'dn');list.push(c);continue;}
    let t=c.k.dy;
    if(t+c.h>ABOVE&&t<BELOW)t=t+c.h/2<2?ABOVE-c.h:BELOW;
    if(c.pull)t=t<0?Math.min(t+c.pull,ABOVE-c.h):Math.max(t-c.pull,BELOW);
@@ -1000,9 +1198,7 @@ function layoutLine(row,x0,x1,maxH){
   }
   for(const c of autos){
    c.cx=Math.min(c.x,x1-c.w);
-   const options=(side)=>{const first=side==='up'?ABOVE-c.h:BELOW,more=list.map(p=>side==='up'?p.top-4-c.h:p.top+p.h+4).filter(t=>side==='up'?t<first:t>first);return [first,...more].sort((a,b)=>Math.abs(a)-Math.abs(b));};
-   const best=side=>{const o=options(side);return o.find(t=>fits(list,c,t))??o[o.length-1];};
-   const tu=best('up'),td=best('dn'),du=-tu-c.h+ABOVE,dd=td-BELOW,sides=s=>list.filter(p=>s==='up'?p.top<0:p.top>=0).length;
+   const tu=best(list,c,'up'),td=best(list,c,'dn'),du=-tu-c.h+ABOVE,dd=td-BELOW,sides=s=>list.filter(p=>s==='up'?p.top<0:p.top>=0).length;
    c.top=du<dd?tu:dd<du?td:(sides('up')<=sides('dn')?tu:td);
    list.push(c);
   }
@@ -1015,7 +1211,39 @@ function layoutLine(row,x0,x1,maxH){
   if(over<=0||!pinned.length)break;
   pinned.reduce((a,b)=>Math.max(-a.top,a.top+a.h)>=Math.max(-b.top,b.top+b.h)?a:b).pull+=over;
  }
- return {cards,above,below,height:above+below,scale};
+ if(shrinking)pinned.forEach(c=>{c.k.dy=c.top;});
+ /* Optimize ignores where boxes were put and tries several placement orders, letting boxes slide left so they still cover their dot.
+    The shortest result wins, and only if it beats the current layout; its positions are then kept as moved boxes. */
+ if(optimizing&&cards.length){
+  const current=above+below,saved=cards.map(c=>[c.cx,c.top]);
+  const orders=[(a,b)=>b.x-a.x,(a,b)=>a.x-b.x,(a,b)=>b.w*b.h-a.w*a.h||a.x-b.x,(a,b)=>b.h-a.h||a.x-b.x].map(f=>[...cards].sort(f));
+  let win=null;
+  for(const order of orders){
+   const list=[];let A=28,B=24;
+   for(const c of order){
+    let pick=null;
+    const spots=[...new Set([c.x,c.x-c.w/2,c.x-c.w+14].map(v=>clamp(v,x0,Math.max(x0,x1-c.w))))];
+    for(const cx of spots){
+     c.cx=cx;
+     for(const side of ['up','dn']){
+      const t=best(list,c,side);if(!fits(list,c,t))continue;
+      const a=Math.max(A,-t),b=Math.max(B,t+c.h),cost=(a+b)*1e4+(side==='up'?-(t+c.h):t)*10+Math.abs(cx-c.x)*.01;
+      if(!pick||cost<pick.cost)pick={cost,cx,t,a,b};
+     }
+    }
+    if(!pick){c.cx=Math.min(c.x,x1-c.w);const t=best(list,c,'up');pick={cx:c.cx,t,a:Math.max(A,-t),b:Math.max(B,t+c.h)};}
+    c.cx=pick.cx;c.top=pick.t;A=pick.a;B=pick.b;list.push(c);
+   }
+   if(!win||A+B+14<win.h)win={h:A+B+14,A,B:B+14,pos:cards.map(c=>[c.cx,c.top])};
+  }
+  const key=+row.start;
+  if(win.h<current-.5){
+   cards.forEach((c,i)=>{[c.cx,c.top]=win.pos[i];c.k.dx=c.cx-c.x;c.k.dy=c.top;c.k.pinSeq=0;c.members.slice(1).forEach(m=>{m.e.dx=m.e.dy=null;});});
+   above=win.A;below=win.B;
+  }else cards.forEach((c,i)=>{[c.cx,c.top]=saved[i];});
+  if(!optimizeReport.has(key))optimizeReport.set(key,{before:current,after:Math.min(current,win.h)});
+ }
+ return {cards,above,below,height:above+below,scale,x0,x1};
 }
 function ticks(row,x0,x1){
  const span=row.end-row.start,W=x1-x0,MIN=6e4,out=[];
@@ -1052,7 +1280,9 @@ function drawRow(r,top,L,R){
   return `<g data-act="lines"><rect x="${L}" y="${b}" width="${R-L}" height="22" fill="#111"/><text x="${L+8}" y="${b+15.5}" font-size="12.5" font-weight="700" fill="#fff">${esc(name)}</text><text x="${R-8}" y="${b+15}" text-anchor="end" font-size="10" fill="#fff">${esc(r.sub)}</text></g>`;
  }
  if(r.type==='gap'){const y=top+11;return `<g data-act="lines"><line x1="${L+92}" x2="${R}" y1="${y}" y2="${y}" stroke="#999" stroke-width="1" stroke-dasharray="2 5"/><rect x="${(L+92+R)/2-mw(gapText(r),false,9.5)/2-8}" y="${y-7}" width="${mw(gapText(r),false,9.5)+16}" height="14" fill="#fff"/><text x="${(L+92+R)/2}" y="${y+3.500}" text-anchor="middle" font-size="9.500" font-style="italic" fill="#555">${esc(gapText(r))}</text></g>`;}
- const x0=L+96,x1=R-4,lay=r.lay,axis=top+lay.above;let s='';
+ const x0=L+96,x1=R-4,lay=r.lay,axis=top+lay.above;
+ /* An invisible strip behind the line, so a right-click anywhere in its space opens the line menu. */
+ let s=`<g data-row="${r.idx}"><rect x="${L}" y="${top}" width="${R-L}" height="${r.h}" fill="transparent"/>`;
  const [l1,l2]=rowLabel(r);
  s+=`<g data-act="lines"><text x="${L}" y="${axis-2}" font-size="10.500" font-weight="700" fill="#111">${esc(l1)}</text><text x="${L}" y="${axis+11}" font-size="9.500" fill="#444">${esc(l2)}</text></g>`;
  s+=`<line data-act="lines" x1="${x0}" x2="${x1}" y1="${axis}" y2="${axis}" stroke="#111" stroke-width="1.400"/>`;
@@ -1064,19 +1294,21 @@ function drawRow(r,top,L,R){
   const edge=c.top<0?boxY+c.h:boxY,lx=Math.max(cx,Math.min(c.x,cx+c.w));
   const dashed=c.rows.some(q=>q.e.approx)?' stroke-dasharray="3 2"':'';
   leaders.push(`<line x1="${c.x}" y1="${axis}" x2="${lx}" y2="${edge}" stroke="#555" stroke-width="0.800"${dashed}/>`);
+  /* Boxes merged by hand can hold events far apart in time, so each one gets its own leader. */
+  for(const m of c.members)if(Math.abs(m.x-c.x)>=9)leaders.push(`<line x1="${m.x}" y1="${axis}" x2="${Math.max(cx+4,Math.min(m.x,cx+c.w-4))}" y2="${edge}" stroke="#555" stroke-width="0.800"${m.e.approx?' stroke-dasharray="3 2"':''}/>`);
   for(const m of c.members)leaders.push(`<circle cx="${m.x}" cy="${axis}" r="3.200" fill="#111" stroke="#fff" stroke-width="1"/>`);
   const isSel=c.rows.some(q=>q.e.id===selected);
-  let g=`<g data-card="${key.id}" data-ox="${cx-c.x}" data-top="${c.top}"><rect x="${cx}" y="${boxY}" width="${c.w}" height="${c.h}" rx="3" fill="#fff" stroke="${isSel?'#1d5fd1':'#aaa'}" stroke-width="${isSel?2:0.700}"/>`;
+  let g=`<g data-card="${key.id}" data-axis="${axis}" data-ox="${cx-c.x}" data-top="${c.top}"><rect x="${cx}" y="${boxY}" width="${c.w}" height="${c.h}" rx="3" fill="#fff" stroke="${isSel?'#1d5fd1':'#aaa'}" stroke-width="${isSel?2:0.700}"/>`;
   let yy=boxY;
   for(const q of c.rows){
-   g+=`<g data-ev="${q.e.id}"><rect x="${cx}" y="${yy}" width="${c.w}" height="${q.h}" fill="transparent"/>`+iconMarkup(legendOf(q.e.icon),cx+5,yy+3,18);
+   g+=`<g data-ev="${q.e.id}"><rect x="${cx}" y="${yy}" width="${c.w}" height="${q.h}" fill="transparent"/>`+(q.e.hl?`<rect x="${cx+1.200}" y="${yy+1.200}" width="${c.w-2.400}" height="${q.h-2.400}" rx="2" fill="${esc(q.e.hl)}"/>`:'')+iconMarkup(legendOf(q.e.icon),cx+5,yy+3,18);
    g+=`<text x="${cx+28}" y="${yy+13.500}" font-size="10.500" fill="#111"><tspan font-weight="700">${esc(q.time)}</tspan><tspan dx="5">${esc(q.lines[0])}</tspan></text>`;
    q.lines.slice(1).forEach((l,i)=>{g+=`<text x="${cx+28}" y="${yy+13.500+(i+1)*12.500}" font-size="10.500" fill="#111">${esc(l)}</text>`;});
    g+='</g>';yy+=q.h;
   }
   boxes.push(g+'</g>');
  }
- return s+leaders.join('')+boxes.join('');
+ return s+leaders.join('')+boxes.join('')+'</g>';
 }
 function fit(text,maxW,bold,size){
  let t=String(text);
@@ -1089,8 +1321,8 @@ function legendLayout(items,L,R){
  for(const it of items){const w=24+mw(it.name,false,10)+16;if(x+w>R&&x>L+58){x=L+58;y+=22;}out.push({it,x,y});x+=w;}
  return {out,h:y+22};
 }
-function markSwatch(k,x,y){
- const body={
+function markSwatch(k,x,y,color){
+ const body=k==='hl'?`<rect x="0.5" y="2" width="17" height="14" rx="2" fill="${esc(color||'#ffe873')}" stroke="#888" stroke-width="0.8"/>`:{
   dot:'<line x1="0" x2="18" y1="9" y2="9" stroke="#111" stroke-width="1.4"/><circle cx="9" cy="9" r="3.2" fill="#111" stroke="#fff" stroke-width="1"/>',
   exact:'<line x1="9" x2="9" y1="1" y2="17" stroke="#555" stroke-width="1"/>',
   approx:'<line x1="9" x2="9" y1="1" y2="17" stroke="#555" stroke-width="1" stroke-dasharray="3 2"/>',
@@ -1100,8 +1332,12 @@ function markSwatch(k,x,y){
  }[k];
  return `<g transform="translate(${x} ${y})">${body}</g>`;
 }
+/* Where pages broke last time. While a box is being dragged the breaks stay put, so lines do not hop between pages under the pointer. */
+let lastBreaks=null,frozenBreaks=null;
+/* The lines drawn last, so a right-click can find the line under the pointer. */
+let lastRows=[];
 function renderChart(){
- stackMates=new Map();
+ stackMates=new Map();lineOf=new Map();boxesOf=new Map();
  if(!Store.hasCase){
   const labels=Store.caseLabels(),folder=esc(Store.folderName);
   const message=Store.canReconnect?'Allow access to your cases folder again to pick up where you left off.':!Store.hasFolder?'Choose the OneDrive folder that holds your cases, or open a single case file.':labels.length?`Choose a case from ${folder}.`:`No Excel case files were found in ${folder}. Only .xlsx files are listed. Start a new case here, or choose a different folder.`;
@@ -1114,6 +1350,7 @@ function renderChart(){
  const m=state.meta,W=m.paper==='legal'?1344:1056,H=816,MX=40,L=MX,R=W-MX,TOP=102;
  $('#pagestyle').textContent=`@page{size:${m.paper==='legal'?'14in':'11in'} 8.5in;margin:0}`;
  const built=buildRows(),used=[...new Set(state.events.map(e=>e.icon))];
+ built.rows.forEach((r,i)=>{r.idx=i;});lastRows=built.rows;
  const layoutAll=maxH=>built.rows.forEach(r=>{
   if(r.type==='line'){r.lay=layoutLine(r,L+96,R-4,maxH);r.h=r.lay.height;}
   else r.h=r.type==='section'?34:22;
@@ -1122,7 +1359,7 @@ function renderChart(){
  layoutAll(0);
  const lines=built.rows.filter(r=>r.type==='line'),shownEv=lines.flatMap(r=>r.items);
  const flags={dot:shownEv.length>0,exact:shownEv.some(e=>!e.approx),approx:shownEv.some(e=>e.approx),bar:lines.some(r=>r.bars.length>0),group:lines.some(r=>r.lay.cards.some(c=>c.rows.length>1)),gap:built.rows.some(r=>r.type==='gap')};
- const items=[...state.legend.filter(l=>used.includes(l.id)),...Object.keys(state.markNames).filter(k=>flags[k]).map(k=>({mark:k,name:state.markNames[k]}))];
+ const items=[...state.legend.filter(l=>used.includes(l.id)),...Object.keys(state.markNames).filter(k=>flags[k]).map(k=>({mark:k,name:state.markNames[k]})),...hlUsed(shownEv).map(c=>({mark:'hl',color:c,name:hlLabel(c)}))];
  const leg=legendLayout(items,L,R),bottom=H-34-30-leg.h,maxH=bottom-TOP-100;
  layoutAll(maxH);
  const tocH=built.heads.length?20+built.heads.length*16+14:0,pages=[[]];
@@ -1139,7 +1376,7 @@ function renderChart(){
    r.bars.forEach(e=>{ic.add(e.icon);f.add('bar');});
    if(r.lay.cards.some(c=>c.rows.length>1))f.add('group');
   }
-  return [...state.legend.filter(l=>ic.has(l.id)),...Object.keys(state.markNames).filter(k=>f.has(k)).map(k=>({mark:k,name:state.markNames[k]}))];
+  return [...state.legend.filter(l=>ic.has(l.id)),...Object.keys(state.markNames).filter(k=>f.has(k)).map(k=>({mark:k,name:state.markNames[k]})),...hlUsed(source.filter(r=>r.type==='line').flatMap(r=>r.items)).map(c=>({mark:'hl',color:c,name:hlLabel(c)}))];
  };
  const bottomFor=list=>H-34-30-legendLayout(itemsFor(list),L,R).h;
  /* Headers and gaps always stay with a real line, so neither can be stranded at the edge of a page. */
@@ -1156,15 +1393,18 @@ function renderChart(){
   return out;
  };
  let y=TOP+tocH;
+ const breaks=new Set(),frozen=frozenBreaks&&frozenBreaks.rows===built.rows.length?frozenBreaks.at:null;
  built.rows.forEach((r,i)=>{
   const added=blockAt(i),need=added.reduce((a,x)=>a+x.h,0),current=pages[pages.length-1];
   const forced=state.sectionPages&&r.type==='section'&&r!==built.heads[0]&&current.some(x=>x.kind!=='skip');
-  if((forced||y+need>bottomFor([...current,...added]))&&y>TOP){
-   pages.push([]);y=TOP;
+  const wrap=frozen?frozen.has(i):forced||y+need>bottomFor([...current,...added]);
+  if(wrap&&y>TOP){
+   breaks.add(i);pages.push([]);y=TOP;
    if(r.type!=='section'&&r.head){const c={type:'section',label:r.head.label+' (continued)',sub:r.head.sub,h:34,top:y,head:r.head};pages[pages.length-1].push(c);y+=34;}
   }
   r.top=y;y+=r.h;pages[pages.length-1].push(r);r.page=pages.length;
  });
+ lastBreaks={rows:built.rows.length,at:breaks};
  $('#legendnow').textContent=`The full legend for this case is ${fullRows} row${fullRows===1?'':'s'}. `+({all:'Every page shows all of it.',page:'Each page lists only what appears on it.',section:"Each page lists what appears in its sections."})[mode];
  const now=new Date(),printed=MON[now.getMonth()]+' '+now.getDate()+', '+now.getFullYear();
  const pct=(v,t)=>(v/t*100).toFixed(3)+'%';
@@ -1187,7 +1427,7 @@ function renderChart(){
   if(!list.length)return '';
   const pl=legendLayout(list,L,R),ly=H-34-20-pl.h;
   let g=`<g data-act="legend"><line x1="${L}" x2="${R}" y1="${ly}" y2="${ly}" stroke="#999" stroke-width="0.7"/><rect x="${L}" y="${ly}" width="${R-L}" height="${pl.h+8}" fill="transparent"/><text x="${L}" y="${ly+19}" font-size="10.5" font-weight="700" fill="#111">Legend</text>`;
-  pl.out.forEach(({it,x,y:yo})=>{g+=(it.mark?markSwatch(it.mark,x,ly+6+yo):iconMarkup(it,x,ly+6+yo,18))+`<text x="${x+23}" y="${ly+19+yo}" font-size="10" fill="#111">${esc(it.name)}</text>`;});
+  pl.out.forEach(({it,x,y:yo})=>{g+=(it.mark?markSwatch(it.mark,x,ly+6+yo,it.color):iconMarkup(it,x,ly+6+yo,18))+`<text x="${x+23}" y="${ly+19+yo}" font-size="10" fill="#111">${esc(it.name)}</text>`;});
   return g+'</g>';
  };
  $('#pages').innerHTML=pages.map((rows,pi)=>{
@@ -1217,11 +1457,11 @@ function renderChart(){
 /* ---------- side panels ---------- */
 function showTab(name){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id==='p-'+name));}
 function renderList(){
- $('#evlist').innerHTML=sorted().map(e=>{const d=new Date(e.t);return `<li data-pick="${e.id}" class="${e.id===selected?'on':''}">${iconTag(legendOf(e.icon))}<div><time>${md(d)}, ${d.getFullYear()} ${e.approx?'~':''}${hm(d)}</time>${esc(e.title)}</div></li>`;}).join('');
+ $('#evlist').innerHTML=sorted().map(e=>{const d=new Date(e.t);return `<li data-pick="${e.id}" class="${e.id===selected?'on':''}"${e.hl?` style="box-shadow:inset 4px 0 0 ${esc(e.hl)}"`:''}>${iconTag(legendOf(e.icon))}<div><time>${md(d)}, ${d.getFullYear()} ${e.approx?'~':''}${hm(d)}</time>${esc(e.title)}</div></li>`;}).join('');
 }
 function renderEditor(){
  const e=state.events.find(x=>x.id===selected),box=$('#editor');
- if(!e){box.innerHTML='<p class="hint">Click an event on the chart to edit it. Drag its box to move the label. The time stays put, and nearby lines make room. If two events share one box, click either one and choose Split into separate boxes to move them apart.</p>';return;}
+ if(!e){box.innerHTML='<p class="hint">Click an event on the chart to edit it. Drag its box to move the label. The time stays put, and nearby lines make room. Right-click a box or a line for more, such as highlighting or merging boxes. Press <b>?</b> at the top right for everything you can click.</p>';return;}
  box.innerHTML=`<div class="card">
   <label class="f">What happened<textarea id="e-title" rows="2">${esc(e.title)}</textarea></label>
   <div class="row"><label class="f">Date and time<input id="e-t" type="datetime-local" value="${e.t}"></label></div>
@@ -1229,20 +1469,35 @@ function renderEditor(){
   <label class="f">Ends (optional, draws a bar)<input id="e-end" type="datetime-local" value="${e.end}"></label>
   <div class="hint" style="margin-bottom:4px">Icon</div>
   <div class="icongrid">${state.legend.map(l=>`<button title="${esc(l.name)}" aria-label="${esc(l.name)}" data-seticon="${l.id}" class="${l.id===e.icon?'on':''}">${iconTag(l)}</button>`).join('')}</div>
+  <div class="hint" style="margin:8px 0 4px">Highlight</div>
+  <div class="hlrow" role="group" aria-label="Highlight color"><button type="button" class="hlnone${!e.hl?' on':''}" data-hl="" aria-pressed="${!e.hl}">None</button>${HL_COLORS.map(h=>`<button type="button" class="hlsw${e.hl===h.c?' on':''}" data-hl="${h.c}" style="background:${h.c}" title="${h.name}" aria-label="${h.name}" aria-pressed="${e.hl===h.c}"></button>`).join('')}<label class="hlcustom${e.hl&&!HL_COLORS.some(h=>h.c===e.hl)?' on':''}" title="Pick any color">Other<input type="color" id="e-hlcustom" value="${esc(e.hl||'#ffe873')}" aria-label="Other highlight color"></label></div>
   <label class="f">Location name (optional)<input id="e-place" value="${esc(e.place||'')}"></label>
   <label class="f">Address (optional)<input id="e-address" placeholder="Street, city, state" value="${esc(e.address||'')}"></label>
   <label class="f">Latitude, longitude (optional, used instead of the address)<input id="e-coords" placeholder="43.8000, -87.1000" value="${esc(e.coords||'')}"><span class="coordmsg" id="e-coordmsg"></span></label>
   <label class="f">Notes (not printed on the chart)<textarea id="e-notes" rows="2">${esc(e.notes)}</textarea></label>
   ${stackMates.has(e.id)?`<p class="hint">This event shares a box with ${stackMates.get(e.id).length-1===1?'1 other event':stackMates.get(e.id).length-1+' other events'} because the times are close together.</p><div class="row"><button id="e-split" class="small">Split into separate boxes</button></div>`:''}
   ${e.solo?'<div class="row"><button id="e-join" class="small">Put back in one box with nearby events</button></div>':''}
-  <div class="row"><button id="e-reset" class="small">Reset label position</button><button id="e-del" class="small">Delete event</button></div>
+  <div class="row"><button id="e-reset" class="small">Reset label position</button><button id="e-shrink" class="small" title="Pull moved boxes on this line back toward it, keeping their side and left-right spot.">Shrink this line</button></div>
+  <div class="row"><button id="e-del" class="small">Delete event</button><span></span></div>
  </div>`;
  const coordMsg=()=>{const v=(e.coords||'').trim(),ok=parseCoords(v),m=$('#e-coordmsg');m.textContent=!v?'':ok?'Reads as '+ok.lat.toFixed(5)+', '+ok.lng.toFixed(5):'Could not read this. Paste it as latitude, longitude.';m.style.color=v&&!ok?'#a32020':'';};
  const bind=(id,prop,get)=>{$(id).addEventListener('input',ev=>{e[prop]=get?get(ev.target):ev.target.value;renderChart();renderList();renderMap();coordMsg();});};
  bind('#e-title','title');bind('#e-t','t');bind('#e-end','end');bind('#e-notes','notes');bind('#e-approx','approx',t=>t.checked);bind('#e-place','place');bind('#e-address','address');bind('#e-coords','coords');coordMsg();
- $('#e-reset').onclick=()=>{e.dx=e.dy=null;renderChart();};
- if($('#e-split'))$('#e-split').onclick=()=>{const mates=stackMates.get(e.id)||[];for(const m of mates)m.solo=mates[0].id;refresh();};
- if($('#e-join'))$('#e-join').onclick=()=>{const g=e.solo;for(const m of state.events)if(m.solo===g){m.solo='';m.dx=m.dy=null;}refresh();};
+ box.querySelectorAll('[data-hl]').forEach(b=>b.onclick=()=>setHighlight(e,b.dataset.hl));
+ const custom=$('#e-hlcustom');
+ custom.addEventListener('input',()=>{e.hl=custom.value;lastHl=custom.value;renderChart();renderList();});
+ custom.addEventListener('change',()=>setHighlight(e,custom.value));
+ /* A shared box keeps its position on whichever event is first in it, so reset clears every event in the box. */
+ const boxMates=()=>stackMates.get(e.id)||[e];
+ const resetBtn=$('#e-reset'),moved=()=>boxMates().some(m=>m.dx!=null||m.dy!=null);
+ resetBtn.disabled=!moved();resetBtn.title=moved()?'':'This label is already in its automatic place.';
+ resetBtn.onclick=()=>{for(const m of boxMates()){m.dx=m.dy=null;delete m.pinSeq;}renderChart();resetBtn.disabled=true;resetBtn.title='This label is already in its automatic place.';};
+ const shrinkBtn=$('#e-shrink'),line=lineOf.get(e.id)||[];
+ shrinkBtn.disabled=!line.some(m=>m.dy!=null);
+ if(shrinkBtn.disabled)shrinkBtn.title='No box on this line has been moved, so it is already as small as it can be.';
+ shrinkBtn.onclick=()=>shrinkLayout(r=>r.items.includes(e),e.id);
+ if($('#e-split'))$('#e-split').onclick=()=>{const mates=stackMates.get(e.id)||[];for(const m of mates){m.solo=mates[0].id;m.join='';}refresh();};
+ if($('#e-join'))$('#e-join').onclick=()=>{const g=e.solo;for(const m of state.events)if(m.solo===g){m.solo='';m.join='';m.dx=m.dy=null;}refresh();};
  $('#e-del').onclick=()=>{state.events=state.events.filter(x=>x!==e);selected=null;refresh();};
 }
 function select(id){selected=id;showTab('events');refresh();}
@@ -1279,7 +1534,7 @@ function moveSection(from,to){
 function renderLegend(){
  const count=id=>state.events.filter(e=>e.icon===id).length;
  $('#legendrows').innerHTML=state.legend.map((l,i)=>`<div class="legrow">${iconTag(l)}<input aria-label="Legend name" data-leg="${i}" value="${esc(l.name)}"><span class="n" title="Events using this icon">${count(l.id)}</span><button class="small" data-delleg="${i}" ${count(l.id)?'disabled':''} aria-label="Remove ${esc(l.name)}">Remove</button></div>`).join('');
- $('#markrows').innerHTML=Object.keys(state.markNames).map(k=>`<div class="legrow"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true">${markSwatch(k,0,0)}</svg><input aria-label="Name for this chart mark" data-mark="${k}" value="${esc(state.markNames[k])}"></div>`).join('');
+ $('#markrows').innerHTML=Object.keys(state.markNames).map(k=>`<div class="legrow"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true">${markSwatch(k,0,0)}</svg><input aria-label="Name for this chart mark" data-mark="${k}" value="${esc(state.markNames[k])}"></div>`).join('')+hlUsed(state.events).map(c=>`<div class="legrow"><svg class="ic" viewBox="0 0 18 18" aria-hidden="true">${markSwatch('hl',0,0,c)}</svg><input aria-label="Name for ${esc(hlName(c))} highlight" data-hlname="${esc(c)}" value="${esc(hlLabel(c))}"></div>`).join('');
  renderLibrary();
 }
 /* Each icon can be added once. Icons already in the legend are highlighted. */
@@ -1653,11 +1908,12 @@ $('#legendmode').value=state.legendMode;
 $('#legendlimit').value=state.legendLimit;
 $('#legendmode').addEventListener('change',e=>{state.legendMode=e.target.value;$('#legendrowsrow').hidden=e.target.value!=='auto';renderChart();});
 $('#legendlimit').addEventListener('input',e=>{state.legendLimit=e.target.value;renderChart();});
-$('#markrows').addEventListener('input',e=>{const t=e.target;if(t.dataset.mark===undefined)return;state.markNames[t.dataset.mark]=t.value;renderChart();});
+$('#markrows').addEventListener('input',e=>{const t=e.target;if(t.dataset.hlname!==undefined){state.hlNames=state.hlNames||{};state.hlNames[t.dataset.hlname]=t.value;renderChart();return;}if(t.dataset.mark===undefined)return;state.markNames[t.dataset.mark]=t.value;renderChart();});
 $('#hideEmpty').addEventListener('change',e=>{state.hideEmpty=e.target.checked;renderChart();});
 $('#sectionPages').addEventListener('change',e=>{state.sectionPages=e.target.checked;renderChart();});
 $('#addsec').onclick=()=>{handEdited();const last=state.sections[state.sections.length-1];const st=last?last.end:'2026-03-01T00:00';state.sections.push({name:'',start:st,end:local(addUnit(new Date(st),7,'day')),n:1,unit:'day',open:true});refresh();$('#sections').lastElementChild.scrollIntoView({block:'nearest'});};
-$('#add').onclick=()=>{const prev=state.events.find(x=>x.id===selected)||sorted().slice(-1)[0];const inc=state.sections.find(x=>x.role==='incident');const d=new Date(prev?new Date(prev.t).getTime()+6e4*5:inc?inc.start:Date.now());const e={id:'e'+(uid++),t:local(d),icon:state.legend[0].id,title:'New event',approx:false,end:'',notes:'',dx:null,dy:null,solo:''};state.events.push(e);select(e.id);const f=$('#e-title');f.focus();f.select();};
+function addEventAt(d){const e={id:'e'+(uid++),t:local(d),icon:state.legend[0].id,title:'New event',approx:false,end:'',notes:'',dx:null,dy:null,solo:'',join:''};state.events.push(e);select(e.id);const f=$('#e-title');f.focus();f.select();}
+$('#add').onclick=()=>{const prev=state.events.find(x=>x.id===selected)||sorted().slice(-1)[0];const inc=state.sections.find(x=>x.role==='incident');addEventAt(new Date(prev?new Date(prev.t).getTime()+6e4*5:inc?inc.start:Date.now()));};
 $('#print').onclick=()=>{selected=null;refresh();window.print();};
 $('#upload').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{state.legend.push({id:'u'+(uid++),img:r.result,name:f.name.replace(/\.[^.]+$/,'')});refresh();};r.readAsDataURL(f);e.target.value='';});
 [['title','#f-title'],['subtitle','#f-subtitle'],['caseno','#f-caseno'],['by','#f-by'],['footer','#f-footer'],['paper','#f-paper']].forEach(([k,id])=>{const el=$(id);el.value=state.meta[k];el.addEventListener('input',()=>{state.meta[k]=el.value;renderChart();});});
@@ -1693,12 +1949,36 @@ function startInlineEdit(spot){
 $('#pages').addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.matches('.editspot')){e.preventDefault();startInlineEdit(e.target);}});
 /* click and drag on the chart */
 let drag=null,dragFrame=0,pinCounter=0;
+/* Screen height of the line a box belongs to. Redraws are scrolled to keep it still, so the box stays under the pointer. */
+function axisOnScreen(id){
+ const ev=id&&document.querySelector(`[data-ev="${id}"]`),g=ev&&ev.closest('[data-card]');if(!g)return null;
+ const m=g.ownerSVGElement.getScreenCTM();return m?m.f+(+g.dataset.axis)*m.d:null;
+}
+function holdLineStill(id,redraw){
+ const before=axisOnScreen(id);redraw();const after=axisOnScreen(id);
+ if(before!=null&&after!=null&&Math.abs(after-before)>0.5)$('#stage').scrollTop+=after-before;
+}
+/* Pulls moved boxes on the chosen lines back toward their axis. With an event id, that event's line stays where it is on screen. */
+function shrinkLayout(test,id){
+ const before=document.querySelectorAll('.paper').length;
+ shrinkRows=test;
+ try{holdLineStill(id,renderChart);}finally{shrinkRows=null;}
+ renderEditor();
+ return {before,after:document.querySelectorAll('.paper').length};
+}
+$('#shrinkall').onclick=()=>{
+ const msg=$('#shrinkmsg');
+ if(!state.events.some(e=>e.dy!=null)){msg.textContent='Nothing to shrink. No boxes have been moved.';return;}
+ const r=shrinkLayout(()=>true);
+ msg.textContent=r.after<r.before?`Done. ${r.before} pages became ${r.after}.`:'Done. Moved boxes are as close to their lines as they fit.';
+};
 function applyDrag(d){
  const ev=state.events.find(x=>x.id===d.id);
  ev.dx=d.ox+(d.x-d.sx)/d.k;ev.dy=d.top+(d.y-d.sy)/d.k;ev.pinSeq=d.seq;
- renderChart();
+ holdLineStill(d.id,renderChart);
 }
 $('#pages').addEventListener('pointerdown',e=>{
+ if(e.button!==0)return;
  const card=e.target.closest('[data-card]');if(!card)return;
  const pick=e.target.closest('[data-ev]');
  drag={id:card.dataset.card,sx:e.clientX,sy:e.clientY,x:e.clientX,y:e.clientY,k:card.ownerSVGElement.getScreenCTM().a,ox:+card.dataset.ox,top:+card.dataset.top,moved:false,pick:pick&&pick.dataset.ev,seq:++pinCounter};
@@ -1708,24 +1988,116 @@ $('#pages').addEventListener('pointerdown',e=>{
 window.addEventListener('pointermove',e=>{
  if(!drag)return;
  drag.x=e.clientX;drag.y=e.clientY;
- if(Math.hypot(drag.x-drag.sx,drag.y-drag.sy)>4)drag.moved=true;
+ if(!drag.moved&&Math.hypot(drag.x-drag.sx,drag.y-drag.sy)>4){drag.moved=true;frozenBreaks=lastBreaks;}
  if(drag.moved&&!dragFrame)dragFrame=requestAnimationFrame(()=>{dragFrame=0;if(drag)applyDrag(drag);});
 });
 window.addEventListener('pointerup',e=>{
  if(!drag)return;
  const d=drag;drag=null;
- if(d.moved){d.x=e.clientX;d.y=e.clientY;applyDrag(d);}
+ if(d.moved){
+  /* Pages are re-broken once, on release, with the dragged line held where it is on screen. */
+  frozenBreaks=null;d.x=e.clientX;d.y=e.clientY;applyDrag(d);
+  const b=$('#e-reset');
+  if(b&&selected&&(stackMates.get(selected)||[{id:selected}]).some(m=>m.id===d.id)){b.disabled=false;b.title='';}
+ }
  else if(d.pick)select(d.pick);
 });
-window.addEventListener('pointercancel',()=>{drag=null;});
+window.addEventListener('pointercancel',()=>{const d=drag;drag=null;if(frozenBreaks){frozenBreaks=null;holdLineStill(d&&d.id,renderChart);}});
 $('#pages').addEventListener('click',e=>{
  const spot=e.target.closest('[data-edit]');
  if(spot){e.preventDefault();startInlineEdit(spot);return;}
  const a=e.target.closest('[data-act]');if(a&&!e.target.closest('[data-card]'))showTab(a.dataset.act);});
+/* ---------- help ---------- */
+$('#helpbtn').onclick=()=>$('#helpdlg').showModal();
+$('#helpclose').onclick=()=>$('#helpdlg').close();
+$('#helpdlg').addEventListener('click',e=>{if(e.target===e.currentTarget)$('#helpdlg').close();});
+/* ---------- right-click menus on the chart ---------- */
+const menu=document.createElement('div');menu.className='ctxmenu';menu.hidden=true;menu.setAttribute('role','menu');document.body.append(menu);
+let menuItems=[];
+function closeMenu(){if(menu.hidden)return;menu.hidden=true;menuItems=[];}
+function openMenu(x,y,items){
+ menuItems=items;
+ menu.innerHTML=items.map((it,i)=>it==='-'?'<div class="sep" role="separator"></div>':it.swatches?`<div class="swrow" role="group" aria-label="Highlight color">${HL_COLORS.map(h=>`<button type="button" role="menuitemradio" data-i="${i}" data-color="${h.c}" style="background:${h.c}" title="${h.name}" aria-label="Highlight ${h.name}" aria-checked="${it.current===h.c}"${it.current===h.c?' class="on"':''}></button>`).join('')}</div>`:`<button type="button" role="menuitem" data-i="${i}"${it.off?' disabled':''}${it.danger?' class="danger"':''}>${esc(it.label)}${it.hint?`<small>${esc(it.hint)}</small>`:''}</button>`).join('');
+ menu.hidden=false;
+ const r=menu.getBoundingClientRect();
+ menu.style.left=Math.max(4,Math.min(x,innerWidth-r.width-4))+'px';
+ menu.style.top=Math.max(4,Math.min(y,innerHeight-r.height-4))+'px';
+ const first=menu.querySelector('button:not([disabled])');if(first)first.focus();
+}
+menu.addEventListener('click',e=>{const b=e.target.closest('button[data-i]');if(!b||b.disabled)return;const it=menuItems[+b.dataset.i];closeMenu();if(b.dataset.color!==undefined)it.run(b.dataset.color);else it.run();});
+menu.addEventListener('keydown',e=>{
+ const list=[...menu.querySelectorAll('button:not([disabled])')],i=list.indexOf(document.activeElement),n=list.length;
+ if((e.key==='ArrowDown'||e.key==='ArrowUp')&&n){e.preventDefault();list[(i+(e.key==='ArrowDown'?1:-1)+n)%n].focus();}
+ else if(e.key==='Escape'||e.key==='Tab'){e.preventDefault();e.stopPropagation();closeMenu();}
+});
+document.addEventListener('pointerdown',e=>{if(!menu.hidden&&!menu.contains(e.target))closeMenu();},true);
+$('#stage').addEventListener('scroll',closeMenu);window.addEventListener('blur',closeMenu);window.addEventListener('resize',closeMenu);
+function toast(text){
+ let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');document.body.append(t);}
+ t.textContent=text;t.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>t.classList.remove('show'),3500);
+}
+const sameLine=row=>r=>r.type==='line'&&+r.start===+row.start;
+function optimizeLines(test,anchor){
+ optimizeReport=new Map();optimizeRows=test;
+ try{holdLineStill(anchor,renderChart);}finally{optimizeRows=null;}
+ renderEditor();
+ let before=0,after=0;optimizeReport.forEach(v=>{before+=v.before;after+=v.after;});
+ return {before,after,gain:before>0?Math.round((1-after/before)*100):0};
+}
+function lineItems(row,anchor){
+ const moved=row.items.some(e=>e.dx!=null||e.dy!=null);
+ return [
+  {label:'Shrink this line',hint:'Pull moved boxes in, keeping their side',off:!moved,run:()=>{shrinkLayout(sameLine(row),anchor);toast('Moved boxes on this line were pulled in.');}},
+  {label:'Optimize this line',hint:'Rearrange boxes so the line is as short as possible',off:!row.items.length,run:()=>{const r=optimizeLines(sameLine(row),anchor);toast(r.gain>0?`This line is now ${r.gain}% shorter.`:'This line is already as short as it can be.');}},
+  {label:'Reset all labels on this line',off:!moved,run:()=>{row.items.forEach(e=>{e.dx=e.dy=null;delete e.pinSeq;});holdLineStill(anchor,renderChart);renderEditor();}}
+ ];
+}
+function eventItems(e,row){
+ const info=boxesOf.get(e.id),mates=stackMates.get(e.id)||[e],find=id=>state.events.find(x=>x.id===id);
+ const left=info&&info.boxes[info.i-1],right=info&&info.boxes[info.i+1];
+ const timeOf=b=>{const ev=find(b.key);return ev?' ('+(ev.approx?'~':'')+hm(new Date(ev.t))+')':'';};
+ /* Both boxes become one, kept on the earlier box's first event. */
+ const merge=(target,toLeft)=>{
+  const mine=info.boxes[info.i],root=(toLeft?target:mine).key;
+  for(const id of [...mine.ids,...target.ids]){const ev=find(id);if(!ev)continue;ev.solo='';ev.dx=ev.dy=null;delete ev.pinSeq;ev.join=id===root?'':root;}
+  holdLineStill(e.id,renderChart);renderEditor();
+ };
+ const moved=mates.some(m=>m.dx!=null||m.dy!=null);
+ return [
+  {label:'Edit this event',run:()=>select(e.id)},
+  '-',
+  e.hl?{label:'Remove highlight',run:()=>setHighlight(e,'')}:{label:'Highlight',hint:hlName(lastHl),run:()=>setHighlight(e,lastHl)},
+  {swatches:true,current:e.hl,run:c=>setHighlight(e,c)},
+  '-',
+  {label:'Merge with the box to the left'+(left?timeOf(left):''),off:!left,run:()=>merge(left,true)},
+  {label:'Merge with the box to the right'+(right?timeOf(right):''),off:!right,run:()=>merge(right,false)},
+  mates.length>1?{label:'Split into separate boxes',run:()=>{for(const m of mates){m.solo=mates[0].id;m.join='';m.dx=m.dy=null;}holdLineStill(e.id,refresh);}}:null,
+  e.solo?{label:'Put back with nearby events',run:()=>{const g=e.solo;for(const m of state.events)if(m.solo===g){m.solo='';m.dx=m.dy=null;}holdLineStill(e.id,refresh);}}:null,
+  {label:'Reset label position',off:!moved,run:()=>{mates.forEach(m=>{m.dx=m.dy=null;delete m.pinSeq;});holdLineStill(e.id,renderChart);renderEditor();}},
+  '-',
+  ...lineItems(row,e.id),
+  '-',
+  {label:'Delete event',danger:true,run:()=>{if(!confirm(`Delete "${e.title}"? This cannot be undone.`))return;state.events=state.events.filter(x=>x!==e);if(selected===e.id)selected=null;refresh();}}
+ ].filter(Boolean);
+}
+$('#pages').addEventListener('contextmenu',e=>{
+ const rowEl=e.target.closest('[data-row]');if(!rowEl)return;
+ const row=lastRows[+rowEl.dataset.row];if(!row||row.type!=='line')return;
+ e.preventDefault();drag=null;
+ const evEl=e.target.closest('[data-ev]'),ev=evEl&&state.events.find(x=>x.id===evEl.dataset.ev);
+ if(ev){openMenu(e.clientX,e.clientY,eventItems(ev,row));return;}
+ const pt=new DOMPoint(e.clientX,e.clientY).matrixTransform(rowEl.ownerSVGElement.getScreenCTM().inverse());
+ const f=Math.max(0,Math.min(1,(pt.x-row.lay.x0)/(row.lay.x1-row.lay.x0))),at=new Date(+row.start+f*(row.end-row.start));at.setSeconds(0,0);
+ openMenu(e.clientX,e.clientY,[{label:`Add an event at ${md(at)}, ${hm(at)}`,run:()=>addEventAt(at)},'-',...lineItems(row,row.items[0]&&row.items[0].id)]);
+});
+$('#optimizeall').onclick=()=>{
+ const r=optimizeLines(()=>true);
+ $('#shrinkmsg').textContent=r.gain>0?`Done. The lines are ${r.gain}% shorter overall.`:'The lines are already as short as they can be.';
+};
 /* ---------- connecting the screen to case files ---------- */
 const STARTER_LEGEND=state.legend.map(l=>({...l}));
 function newCaseDefaults(){
- return {meta:{title:'Timeline of Events',subtitle:'',caseno:'',by:state.meta.by,footer:'',paper:'letter'},hideEmpty:true,sectionPages:false,legendMode:'auto',legendLimit:3,suggest:copyDefaults(),markNames:{dot:'Event time',exact:'Exact time',approx:'~ Approximate time',bar:'Duration',group:'Events close together',gap:'Time skipped'},legend:STARTER_LEGEND.map(l=>({...l})),events:[],sections:[],unreadable:[],extraSheets:[]};
+ return {meta:{title:'Timeline of Events',subtitle:'',caseno:'',by:state.meta.by,footer:'',paper:'letter'},hideEmpty:true,sectionPages:false,legendMode:'auto',legendLimit:3,suggest:copyDefaults(),hlNames:{},markNames:{dot:'Event time',exact:'Exact time',approx:'~ Approximate time',bar:'Duration',group:'Events close together',gap:'Time skipped'},legend:STARTER_LEGEND.map(l=>({...l})),events:[],sections:[],unreadable:[],extraSheets:[]};
 }
 function afterCaseLoaded(){
  ['title','subtitle','caseno','by','footer','paper'].forEach(k=>{$('#f-'+k).value=state.meta[k];});
